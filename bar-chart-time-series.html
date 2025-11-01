@@ -75,17 +75,17 @@
         }
       },
       grid: {
-        top: 10,
-        left: 10,
-        right: 10,
-        bottom: 10
+        top: 40,
+        left: 40,
+        right: 40,
+        bottom: 40
       }
     };
 
     const chartDom = document.getElementById('chart');
     const myChart = echarts.init(chartDom);
     myChart.setOption(option);
-    
+
     window.addEventListener('resize', () => {
       myChart.resize();
     });
