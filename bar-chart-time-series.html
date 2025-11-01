@@ -85,6 +85,11 @@
     const chartDom = document.getElementById('chart');
     const myChart = echarts.init(chartDom);
     myChart.setOption(option);
+    
+    window.addEventListener('resize', () => {
+      myChart.resize();
+    });
+
   </script>
 </body>
 </html>
