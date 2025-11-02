@@ -25,63 +25,72 @@
   <div id="chart"></div>
 
   <script>
-    const colors = ['#145dfc', '#03c950', '#ed5a27'];
+const colors = ['#145dfc', '#03c950', '#ed5a27']
 
-    const option = {
-      textStyle: {
-        fontFamily: 'Be Vietnam Pro, sans-serif',
-        fontSize: 12,
-        color: '#333'
-      },
-      xAxis: {
-        type: 'category',
-        data: [
-          '01-10', '02-10', '03-10', '04-10', '05-10',
-          '06-10', '07-10', '08-10', '09-10', '10-10',
-          '11-10', '12-10', '13-10', '14-10', '15-10',
-          '16-10', '17-10', '18-10', '19-10', '20-10',
-          '21-10', '22-10', '23-10', '24-10', '25-10',
-          '26-10', '27-10', '28-10', '29-10', '30-10'
-        ]
-      },
-      yAxis: {
-        type: 'value',
-        splitLine: { lineStyle: { type: 'dashed' } }
-      },
-      series: [
-        {
-          data: [
-            1120, 1132, 1101, 1134, 990,
-            1100, 1110, 1180, 1160, 1145,
-            1100, 1120, 1190, 1170, 1155,
-            1165, 1175, 1185, 1195, 1105,
-            1110, 1175, 1185, 1165, 1155,
-            1165, 1175, 1185, 1160, 1105
-          ],
-          type: 'bar',
-          itemStyle: { color: colors[2] }
-        }
+option = {
+  textStyle: {
+    fontFamily: 'Be Vietnam Pro, sans-serif',
+    fontSize: 12,
+    color: '#333'
+  },
+  xAxis: {
+    type: 'category',
+    data: [
+      '01-10', '02-10', '03-10', '04-10', '05-10',
+      '06-10', '07-10', '08-10', '09-10', '10-10',
+      '11-10', '12-10', '13-10', '14-10', '15-10',
+      '16-10', '17-10', '18-10', '19-10', '20-10',
+      '21-10', '22-10', '23-10', '24-10', '25-10',
+      '26-10', '27-10', '28-10', '29-10', '30-10'
+    ]
+  },
+  yAxis: {
+    type: 'value',
+    splitLine: { lineStyle: { type: 'dashed' } }
+  },
+  series: [
+    {
+      data: [
+        1120, 1132, 1101, 1134, 990,
+        1100, 1110, 1180, 1160, 1145,
+        1100, 1120, 1190, 1170, 1155,
+        1165, 1175, 1185, 1195, 1105,
+        1110, 1175, 1185, 1165, 1155,
+        1165, 1175, 1185, 1160, 1105
       ],
-      tooltip: {
-        show: true,
-        backgroundColor: 'rgba(255,255,255,0.95)',
-        formatter: function (params) {
-          const date = params.name;
+      type: 'bar',
+      itemStyle: { color: colors[2] }
+    }
+  ],
+  label: {
+    show: true,
+          position: 'top', 
+          align: 'center',
+          hideOverlap: true,
+          formatter: function (params) {
           const value = params.value.toLocaleString('en-US');
-          return (
-            `Report Date: ${date}<br/>` +
-            `Metrics: ${value}`
-          );
-        }
-      },
-      grid: {
-        top: 20,
-        left: 50,
-        right: 30,
-        bottom: 30
+          return value;
       }
-    };
-
+  },
+  tooltip: {
+    show: true,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    formatter: function (params) {
+      const date = params.name;
+      const value = params.value.toLocaleString('en-US');
+      return (
+        `Report Date: ${date}<br/>` +
+        `Metrics:</b> ${value}`
+      );
+    }
+  },
+  grid: {
+      top: 40,
+      left: 40,
+      right: 40,
+      bottom: 40
+    }
+};
     const chartDom = document.getElementById('chart');
     const myChart = echarts.init(chartDom);
     myChart.setOption(option);
