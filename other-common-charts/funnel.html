@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Funnel</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #chart {
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div id="chart"></div>
+
+  <script>
+const colors = ['#145dfc','#03c950','#ed5a27','#f4b400','#9c27b0','#00bcd4'];
+
+const funnelData = [
+  { name: 'Dim 1', value: 5000 },
+  { name: 'Dim 2', value: 4500 },
+  { name: 'Dim 3', value: 3500 },
+  { name: 'Dim 4', value: 3200 },
+  { name: 'Dim 5', value: 2900 }
+];
+
+const firstValue = funnelData[0].value;
+
+option = {
+  textStyle: {
+    fontFamily: 'Be Vietnam Pro, sans-serif',
+    fontSize: 12,
+    color: 'white'
+  },
+  tooltip: {
+    trigger: 'item',
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    formatter: function (params) {
+      const index = funnelData.findIndex(d => d.name === params.name);
+      let drop = '';
+      if (index > 0) {
+        const prev = funnelData[index - 1].value;
+        const percentDrop = (((prev - params.value) / prev) * 100).toFixed(1);
+        drop = ` -${percentDrop}%`;
+      }
+      const percentTotal = ((params.value / firstValue) * 100).toFixed(1);
+      return `${params.name}<br/>Metric: ${params.value.toLocaleString('en-US')} (${percentTotal}%)${drop}`;
+    }
+  },
+  grid: {
+    top: 20,
+    left: 20,
+    right: 20,
+    bottom: 40
+  },
+  series: [
+    {
+      name: 'User Funnel',
+      type: 'funnel',
+      left: '10%',
+      top: 20,
+      bottom: 20,
+      width: '80%',
+      min: 0,
+      max: firstValue,
+      sort: 'descending',
+      gap: 2,
+      label: {
+        show: true,
+        position: 'inside',
+        color: 'white',
+        fontFamily: 'Be Vietnam Pro, sans-serif',
+        fontSize: 12,
+        formatter: function (params) {
+          const index = funnelData.findIndex(d => d.name === params.name);
+          let drop = '';
+          if (index > 0) {
+            const prev = funnelData[index - 1].value;
+            const percentDrop = (((prev - params.value) / prev) * 100).toFixed(1);
+            drop = ` -${percentDrop}%`;
+          }
+          const percentTotal = ((params.value / firstValue) * 100).toFixed(1);
+          return `${params.name}: ${params.value.toLocaleString('en-US')} (${percentTotal}%) \n ${drop}`;
+        }
+      },
+      data: funnelData.map((d, i) => ({
+        ...d,
+        itemStyle: { color: colors[i % colors.length] }
+      }))
+    }
+  ]
+};
+    const chartDom = document.getElementById('chart');
+    const myChart = echarts.init(chartDom);
+    myChart.setOption(option);
+
+    window.addEventListener('resize', () => {
+      myChart.resize();
+    });
+
+  </script>
+</body>
+</html>
