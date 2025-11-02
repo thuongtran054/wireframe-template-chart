@@ -67,8 +67,10 @@ option = {
       itemStyle: { borderColor: '#fff', borderWidth: 2 },
       label: {
         color: '#333',
-        formatter: '{b}:\n{d}%',
-        fontSize: 12
+        fontSize: 12,
+        formatter: function (params) {
+          return `${params.name}:\n${params.percent.toFixed(1)}%`;
+        }
       },
       labelLine: { smooth: true, length: 10, length2: 15 },
       data: [
