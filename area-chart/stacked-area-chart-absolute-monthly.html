@@ -103,8 +103,9 @@ option = {
       areaStyle: { opacity: 0.9, color: colors[2] },
       data: dim3 },
   ]
-};
-
+}
+;
+const chartDom = document.getElementById('chart');
 const myChart = echarts.init(chartDom);
     myChart.setOption(option);
 
