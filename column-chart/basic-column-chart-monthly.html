@@ -52,7 +52,7 @@ option = {
     formatter: function (params) {
       const date = params.name;
       const value = params.value.toLocaleString('en-US');
-      return `Report Date: ${date}<br/>Metrics: ${value}`;
+      return `Report Month: ${date}<br/>Metrics: ${value}`;
     }
   },
   grid: {
@@ -67,7 +67,7 @@ option = {
       data: [
         1120, 1132, 1101, 1134, 990,
         1100, 1110, 1180, 1160, 1145,
-        1100, 1120
+        1100, 1120, 1180, 1145
       ],
       itemStyle: { color: colors[2] },
       label: {
