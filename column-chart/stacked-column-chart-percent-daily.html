@@ -25,87 +25,108 @@
   <div id="chart"></div>
 
   <script>
-    const colors = ['#145dfc', '#03c950', '#ed5a27', '#f7b500', '#9b51e0'];
+const colors = ['#145dfc', '#03c950', '#ed5a27', '#9b9b9b', '#f7b500'];
 
-    // === Dữ liệu mẫu cho 5 category ===
-    const categories = [
-      '01-10', '02-10', '03-10', '04-10', '05-10',
-      '06-10', '07-10', '08-10', '09-10', '10-10'
-    ];
+const categories = [
+  '01-10', '02-10', '03-10', '04-10', '05-10',
+  '06-10', '07-10', '08-10', '09-10', '10-10',
+  '11-10', '12-10', '13-10', '14-10', '15-10',
+  '16-10', '17-10', '18-10', '19-10', '20-10',
+  '21-10', '22-10', '23-10', '24-10', '25-10',
+  '26-10', '27-10', '28-10', '29-10', '30-10'
+];
 
-    const rawData = {
-      A: [320, 302, 301, 334, 390, 330, 320, 350, 310, 300],
-      B: [120, 132, 101, 134, 90, 230, 210, 180, 220, 200],
-      C: [220, 182, 191, 234, 290, 330, 310, 270, 260, 250],
-      D: [150, 212, 201, 154, 190, 330, 410, 300, 320, 280],
-      E: [820, 832, 901, 934, 1290, 1330, 1320, 1100, 900, 950]
+// === Absolute data (≈ tổng 1200/ngày) ===
+const dim1 = [480, 500, 390, 510, 195, 310, 500, 595, 510, 505,
+              510, 520, 505, 500, 510, 515, 520, 590, 600, 810,
+              500, 510, 515, 500, 295, 510, 505, 315, 300, 510];
+const dim2 = [220, 210, 230, 215, 225, 220, 230, 220, 215, 230,
+              225, 220, 230, 225, 220, 215, 220, 230, 225, 220,
+              225, 230, 220, 215, 220, 225, 230, 225, 215, 220];
+const dim3 = [250, 240, 245, 250, 240, 245, 250, 240, 245, 250,
+              245, 250, 240, 245, 250, 240, 245, 250, 240, 245,
+              250, 245, 240, 250, 240, 245, 250, 240, 245, 250];
+const dim4 = [230, 225, 235, 230, 225, 230, 235, 225, 230, 235,
+              230, 225, 230, 235, 225, 230, 225, 230, 235, 230,
+              225, 230, 235, 230, 225, 230, 235, 230, 225, 230];
+const dim5 = [220, 210, 215, 220, 215, 210, 215, 220, 215, 210,
+              215, 220, 210, 215, 220, 215, 210, 215, 220, 215,
+              210, 215, 220, 215, 210, 215, 220, 215, 210, 215];
+
+// === Convert to percentage for stacked-100 ===
+function toPercentData(dataArrs) {
+  const n = dataArrs[0].length;
+  const totalArr = Array.from({ length: n }, (_, i) =>
+    dataArrs.reduce((sum, arr) => sum + arr[i], 0)
+  );
+  return dataArrs.map(arr =>
+    arr.map((v, i) => (v / totalArr[i] * 100).toFixed(1))
+  );
+}
+
+const [dim1Pct, dim2Pct, dim3Pct, dim4Pct, dim5Pct] =
+  toPercentData([dim1, dim2, dim3, dim4, dim5]);
+
+// === Chart config ===
+option = {
+  textStyle: {
+    fontFamily: 'Be Vietnam Pro, sans-serif',
+    fontSize: 12,
+    color: '#333'
+  },
+  xAxis: {
+    type: 'category',
+    data: categories
+  },
+  yAxis: {
+    type: 'value',
+    min: 0,
+    max: 100,
+    axisLabel: { formatter: '{value}%' },
+    splitLine: { lineStyle: { type: 'dashed' } }
+  },
+  tooltip: {
+ trigger: 'item',
+  backgroundColor: 'rgba(255,255,255,0.95)',
+  formatter: function (p) {
+    const i = p.dataIndex;
+    const date = categories[i];
+    const total = dim1[i] + dim2[i] + dim3[i];
+    const dimMap = {
+      'Dim 1': { value: dim1[i], pct: dim1Pct[i] },
+      'Dim 2': { value: dim2[i], pct: dim2Pct[i] },
+      'Dim 3': { value: dim3[i], pct: dim3Pct[i] },
+      'Dim 4': { value: dim4[i], pct: dim4Pct[i] },
+      'Dim 5': { value: dim5[i], pct: dim5Pct[i] }
     };
 
-    // === Chuẩn hóa thành 100% cho từng ngày ===
-    const keys = Object.keys(rawData);
-    const normalizedData = {};
-    categories.forEach((_, i) => {
-      const total = keys.reduce((sum, key) => sum + rawData[key][i], 0);
-      keys.forEach((key) => {
-        if (!normalizedData[key]) normalizedData[key] = [];
-        normalizedData[key].push((rawData[key][i] / total * 100).toFixed(2));
-      });
-    });
-
-    // === Cấu hình chart ===
-    const option = {
-      textStyle: {
-        fontFamily: 'Be Vietnam Pro, sans-serif',
-        fontSize: 12,
-        color: '#333'
-      },
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: { type: 'shadow' },
-        backgroundColor: 'rgba(255,255,255,0.95)',
-        formatter: function (params) {
-          let total = 0;
-          let html = `<strong>${params[0].name}</strong><br/>`;
-          params.forEach(p => {
-            total += parseFloat(p.value);
-            html += `<span style="display:inline-block;width:10px;height:10px;background:${p.color};border-radius:50%;margin-right:5px;"></span>${p.seriesName}: ${p.value}%<br/>`;
-          });
-          return html + `<b>Total: ${total.toFixed(0)}%</b>`;
-        }
-      },
-      legend: {
-        bottom: 0,
-        icon: 'circle',
-        itemWidth: 10,
-        itemHeight: 10,
-        textStyle: { fontSize: 12 }
-      },
-      grid: {
-        top: 30,
-        left: 50,
-        right: 30,
-        bottom: 60
-      },
-      xAxis: {
-        type: 'category',
-        data: categories
-      },
-      yAxis: {
-        type: 'value',
-        max: 100,
-        axisLabel: { formatter: '{value}%' },
-        splitLine: { lineStyle: { type: 'dashed' } }
-      },
-      series: keys.map((key, index) => ({
-        name: key,
-        type: 'bar',
-        stack: 'total',
-        emphasis: { focus: 'series' },
-        itemStyle: { color: colors[index] },
-        data: normalizedData[key]
-      }))
-    };
-
+    const marker = `<span style="display:inline-block;margin-right:5px;width:10px;height:10px;border-radius:50%;background:${p.color}"></span>`;
+    const d = dimMap[p.seriesName];
+    return `
+      Report Date: ${date}<br/>
+     ${p.seriesName}: ${d.value.toLocaleString('en-US')} (${d.pct}% of Total ${total.toLocaleString('en-US')} )<br/>
+    `;
+  }
+},
+  legend: {
+    bottom: 5,
+    icon: 'circle',
+    data: ['Dim 1', 'Dim 2', 'Dim 3', 'Dim 4', 'Dim 5']
+  },
+  grid: {
+    top: 60,
+    left: 50,
+    right: 40,
+    bottom: 60
+  },
+  series: [
+    { name: 'Dim 1', type: 'bar', stack: 'total', itemStyle: { color: colors[0] }, data: dim1Pct },
+    { name: 'Dim 2', type: 'bar', stack: 'total', itemStyle: { color: colors[1] }, data: dim2Pct },
+    { name: 'Dim 3', type: 'bar', stack: 'total', itemStyle: { color: colors[2] }, data: dim3Pct },
+    { name: 'Dim 4', type: 'bar', stack: 'total', itemStyle: { color: colors[3] }, data: dim4Pct },
+    { name: 'Dim 5', type: 'bar', stack: 'total', itemStyle: { color: colors[4] }, data: dim5Pct }
+  ]
+};
     const chartDom = document.getElementById('chart');
     const myChart = echarts.init(chartDom);
     myChart.setOption(option);
