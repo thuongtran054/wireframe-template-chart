@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stacked 100% Bar Chart</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #chart {
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div id="chart"></div>
+
+  <script>
+const colors = ['#145dfc', '#03c950', '#ed5a27', '#9b9b9b', '#f7b500'];
+
+const categories = [
+  '01-10', '02-10', '03-10', '04-10', '05-10',
+  '06-10', '07-10', '08-10', '09-10', '10-10',
+  '11-10', '12-10', '13-10', '14-10', '15-10',
+  '16-10', '17-10', '18-10', '19-10', '20-10',
+  '21-10', '22-10', '23-10', '24-10', '25-10',
+  '26-10', '27-10', '28-10', '29-10', '30-10'
+];
+
+const dim1 = [480, 500, 390, 510, 195, 310, 500, 595, 510, 505,
+              510, 520, 505, 500, 510, 515, 520, 590, 600, 810,
+              500, 510, 515, 500, 295, 510, 505, 315, 300, 510];
+const dim2 = [220, 210, 230, 215, 225, 220, 230, 220, 215, 230,
+              225, 220, 230, 225, 220, 215, 220, 230, 225, 220,
+              225, 230, 220, 215, 220, 225, 230, 225, 215, 220];
+const dim3 = [250, 240, 245, 250, 240, 245, 250, 240, 245, 250,
+              245, 250, 240, 245, 250, 240, 245, 250, 240, 245,
+              250, 245, 240, 250, 240, 245, 250, 240, 245, 250]
+
+// === Chart config ===
+option = {
+  textStyle: {
+    fontFamily: 'Be Vietnam Pro, sans-serif',
+    fontSize: 12,
+    color: '#333'
+  },
+  xAxis: {
+    type: 'category',
+    data: categories
+  },
+  yAxis: {
+    type: 'value',
+    name: '',
+    splitLine: { lineStyle: { type: 'dashed' } }
+  },
+  tooltip: {
+    trigger: 'item',
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    formatter: function (p) {
+      const i = p.dataIndex;
+      const date = categories[i];
+      const total = dim1[i] + dim2[i] + dim3[i];
+      const dimMap = {
+        'Dim 1': dim1[i],
+        'Dim 2': dim2[i],
+        'Dim 3': dim3[i]
+      };
+
+      const value = dimMap[p.seriesName];
+      const marker = `<span style="display:inline-block;margin-right:5px;width:10px;height:10px;border-radius:50%;background:${p.color}"></span>`;
+      return `
+        Report Date: ${date}<br/>
+        ${p.seriesName}: ${value.toLocaleString('en-US')}
+      `;
+    }
+  },
+  legend: {
+    bottom: 5,
+    icon: 'circle',
+    data: ['Dim 1', 'Dim 2', 'Dim 3', 'Dim 4', 'Dim 5']
+  },
+  grid: {
+    top: 40,
+    left: 40,
+    right: 20,
+    bottom: 60
+  },
+  series: [
+    { name: 'Dim 1', type: 'bar', stack: 'total', itemStyle: { color: colors[0] }, data: dim1 },
+    { name: 'Dim 2', type: 'bar', stack: 'total', itemStyle: { color: colors[1] }, data: dim2 },
+    { name: 'Dim 3', type: 'bar', stack: 'total', itemStyle: { color: colors[2] }, data: dim3 }
+  ]
+};
+    const chartDom = document.getElementById('chart');
+    const myChart = echarts.init(chartDom);
+    myChart.setOption(option);
+
+    window.addEventListener('resize', () => myChart.resize());
+  </script>
+</body>
+</html>
