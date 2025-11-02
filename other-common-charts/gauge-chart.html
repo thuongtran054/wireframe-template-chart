@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gauge Chart</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #chart {
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div id="chart"></div>
+
+  <script>
+const colors = ['#03c950', '#03c950', '#ed5a27', '#9b9b9b', '#f7b500'];
+
+const dim1 = 810;
+const dim2 = 250;
+const dim3 = 210;
+const dim4 = 120;
+
+const total = dim1 + dim2 + dim3 + dim4;
+const percent = ((dim1 / total) * 100).toFixed(1); // ví dụ hiển thị Dim 1
+
+option = {
+  textStyle: {
+    fontFamily: 'Be Vietnam Pro, sans-serif',
+    fontSize: 12,
+    color: '#333'
+  },
+  tooltip: {
+    trigger: 'item',
+    formatter: function () {
+      return `Dim 1: ${dim1} (${percent}%)`;
+    }
+  },
+  series: [
+    {
+      name: 'Overall Gauge',
+      type: 'gauge',
+      startAngle: 210,
+      endAngle: -30,
+      radius: '90%',
+      center: ['50%', '55%'],
+      progress: {
+        show: true,
+        width: 70,
+        itemStyle: {
+          color: colors[0]
+        }
+      },
+      axisLine: {
+        lineStyle: {
+          width: 70,
+          color: [[1, '#eee']]
+        }
+      },
+      axisTick: { show: false },
+      splitLine: { show: false },
+      axisLabel: { show: false },
+      pointer: { show: false },
+      title: {
+        show: true,
+        offsetCenter: [0, '70%'],
+        fontSize: 14,
+        color: '#333',
+        fontWeight: 'normal',
+        text: 'Dim 1'
+      },
+      detail: {
+        valueAnimation: true,
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: '#333',
+        offsetCenter: [0, '0%'],
+        formatter: percent + '%'
+      },
+      data: [
+        { value: percent }
+      ]
+    }
+  ]
+};
+
+    const chartDom = document.getElementById('chart');
+    const myChart = echarts.init(chartDom);
+    myChart.setOption(option);
+
+    window.addEventListener('resize', () => {
+      myChart.resize();
+    });
+
+  </script>
+</body>
+</html>
