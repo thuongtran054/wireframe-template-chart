@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Heat Map</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #chart {
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div id="chart"></div>
+
+  <script>
+const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const hours = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+
+// Tạo data ngẫu nhiên, nhấn mạnh khung giờ tối cuối tuần
+const data = [];
+for (let d = 0; d < days.length; d++) {
+  for (let h = 0; h < hours.length; h++) {
+    let value = Math.round(Math.random() * 20);
+
+    // Tăng mạnh lượng user vào cuối tuần (Fri-Sun, 19h–23h)
+    if (d >= 4 && h >= 19 && h <= 23) {
+      value += 80 + Math.round(Math.random() * 40);
+    }
+    data.push([h, d, value]);
+  }
+}
+
+option = {
+  tooltip: {
+    position: 'top',
+    formatter: (p) => `${days[p.value[1]]} ${p.value[0]}: ${p.value[2]} users`,
+  },
+  grid: {
+    top: 20,
+    bottom: 30,
+    left: 80,
+    right: 30,
+  },
+  xAxis: {
+    type: 'category',
+    data: hours,
+    splitArea: { show: true },
+    // name: 'Hour',
+  },
+  yAxis: {
+    type: 'category',
+    data: days,
+    splitArea: { show: true },
+    inverse: true, // ✅ Đảm bảo Monday nằm trên cùng
+  },
+visualMap: {
+  show: false,
+  min: 0,
+  max: 120,
+  calculable: true,
+  orient: 'horizontal',
+  left: 'center',
+  bottom: 5,
+  inRange: {
+    // Dải màu pastel cam → nhạt dần từ vàng nhạt đến cam nhạt
+    color: ['#fff2e5', '#ffd9b3', '#ffb366', '#ff8c33', '#ff6600'],
+  },
+},
+series: [
+    {
+      name: 'User Activity',
+      type: 'heatmap',
+      data: data,
+      label: { show: false },
+      emphasis: {
+        itemStyle: {
+          shadowBlur: 10,
+          shadowColor: '#145dfc',
+        },
+      },
+    },
+  ],
+};
+    const chartDom = document.getElementById('chart');
+    const myChart = echarts.init(chartDom);
+    myChart.setOption(option);
+
+    window.addEventListener('resize', () => {
+      myChart.resize();
+    });
+
+  </script>
+</body>
+</html>
