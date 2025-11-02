@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Basic Multiple Metrics Line Chart Monthly</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #chart {
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div id="chart"></div>
+
+  <script>
+const colors = ['#145dfc', '#03c950', '#ed5a27'];
+
+const categories = [
+'Jan-25', 'Feb-25', 'Mar-25', 'Apr-25', 'May-25', 'Jun-25',
+  'Jul-25', 'Aug-25', 'Sep-25', 'Oct-25', 'Nov-25', 'Dec-25','Jan-26','Feb-26'];
+
+// 🔹 Two metrics’ data
+const metric1 = [
+  1120, 1132, 1101, 1134, 990,
+  1100, 1110, 1180, 1160, 1145,
+  1100, 1120, 1190, 1170
+];
+
+const metric2 = [
+  980, 1010, 1005, 1025, 1250,
+  1170, 1185, 1215, 1300
+];
+
+option = {
+  textStyle: {
+    fontFamily: 'Be Vietnam Pro, sans-serif',
+    fontSize: 12,
+    color: '#333'
+  },
+  legend: {
+    bottom: 5,
+    left: 'center',
+    icon: 'circle',
+    data: ['Metric 1', 'Metric 2']
+  },
+  tooltip: {
+    trigger: 'axis',
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    formatter: function (params) {
+      const date = params[0].axisValue;
+      let tooltipText = `<b>${date}</b><br/>`;
+      params.forEach(p => {
+        tooltipText += `
+          <span style="display:inline-block;margin-right:6px;border-radius:50%;width:10px;height:10px;background:${p.color}"></span>
+          ${p.seriesName}: ${p.value.toLocaleString('en-US')}<br/>
+        `;
+      });
+      return tooltipText;
+    }
+  },
+  grid: {
+    top: 20,
+    left: 40,
+    right: 20,
+    bottom: 65
+  },
+  xAxis: {
+    type: 'category',
+    data: categories
+  },
+  yAxis: {
+    type: 'value',
+    splitLine: { lineStyle: { type: 'dashed' } }
+  },
+  series: [
+    {
+      name: 'Metric 1',
+      type: 'line',
+      data: metric1,
+      symbol: 'none',
+      smooth: false,
+      itemStyle: { color: colors[0] },
+      lineStyle: { width: 2 },
+      label: {
+        show: true,
+        position: 'top',
+        formatter: function (params) {
+          if (params.dataIndex > categories.length - 3) {
+            return params.value.toLocaleString('en-US');
+          }
+          return '';
+        }
+      },
+      labelLayout: { hideOverlap: true }
+    },
+    {
+      name: 'Metric 2',
+      type: 'line',
+      data: metric2,
+      symbol: 'none',
+      smooth: false,
+      itemStyle: { color: colors[1] },
+      lineStyle: { width: 2 },
+      label: {
+        show: true,
+        position: 'top',
+        formatter: function (params) {
+          if (params.dataIndex > categories.length - 3) {
+            return params.value.toLocaleString('en-US');
+          }
+          return '';
+        }
+      },
+      labelLayout: { hideOverlap: true }
+    }
+  ]
+};
+    const chartDom = document.getElementById('chart');
+    const myChart = echarts.init(chartDom);
+    myChart.setOption(option);
+
+    window.addEventListener('resize', () => {
+      myChart.resize();
+    });
+
+  </script>
+</body>
+</html>
