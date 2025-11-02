@@ -88,9 +88,9 @@ option = {
     bottom: 60
   },
   series: [
-    { name: 'Dim 1', type: 'line', stack: 'total', itemStyle: { color: colors[0] }, data: dim1 },
-    { name: 'Dim 2', type: 'line', stack: 'total', itemStyle: { color: colors[1] }, data: dim2 },
-    { name: 'Dim 3', type: 'line', stack: 'total', itemStyle: { color: colors[2] }, data: dim3 }
+    { name: 'Dim 1', type: 'line', stack: 'total', itemStyle: { color: colors[0] }, data: dim1,symbol: 'none' },
+    { name: 'Dim 2', type: 'line', stack: 'total', itemStyle: { color: colors[1] }, data: dim2,symbol: 'none' },
+    { name: 'Dim 3', type: 'line', stack: 'total', itemStyle: { color: colors[2] }, data: dim3,symbol: 'none' }
   ]
 };
     const chartDom = document.getElementById('chart');
