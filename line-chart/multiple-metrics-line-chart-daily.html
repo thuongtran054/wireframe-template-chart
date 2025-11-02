@@ -72,7 +72,7 @@ option = {
     backgroundColor: 'rgba(255,255,255,0.95)',
     formatter: function (params) {
       const date = params[0].axisValue;
-      let tooltipText = `<b>${date}</b><br/>`;
+      let tooltipText = `Report Date: ${date}<br/>`;
       params.forEach(p => {
         tooltipText += `
           <span style="display:inline-block;margin-right:6px;border-radius:50%;width:10px;height:10px;background:${p.color}"></span>
