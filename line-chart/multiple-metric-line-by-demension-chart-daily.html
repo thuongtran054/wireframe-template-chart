@@ -36,13 +36,13 @@ const categories = [
   '26-10', '27-10', '28-10', '29-10', '30-10'
 ];
 
-const dim1 = [480, 500, 390, 510, 195, 310, 500, 595, 510, 505,
+const dim1 = [480, 500, 390, 510, 595, 310, 500, 595, 510, 505,
               510, 520, 505, 500, 510, 515, 520, 590, 600, 810,
               500, 510, 515, 500, 295, 510, 505, 315, 300, 510];
-const dim2 = [220, 210, 230, 215, 225, 220, 230, 220, 215, 230,
+const dim2 = [220, 210, 230, 215, 625, 220, 230, 220, 215, 230,
               225, 220, 230, 225, 220, 215, 220, 230, 225, 220,
               225, 230, 220, 215, 220, 225, 230, 225, 215, 220];
-const dim3 = [250, 240, 245, 250, 240, 245, 250, 240, 245, 250,
+const dim3 = [250, 240, 245, 250, 640, 245, 250, 240, 245, 250,
               245, 250, 240, 245, 250, 240, 245, 250, 240, 245,
               250, 245, 240, 250, 240, 245, 250, 240, 245, 250]
 
@@ -63,27 +63,19 @@ option = {
     splitLine: { lineStyle: { type: 'dashed' } }
   },
   tooltip: {
-    trigger: 'item',
+    trigger: 'axis', // ✅ thay vì 'item'
     backgroundColor: 'rgba(255,255,255,0.95)',
-    formatter: function (p) {
-      const i = p.dataIndex;
+    formatter: function (params) {
+      const i = params[0].dataIndex;
       const date = categories[i];
-      const total = dim1[i] + dim2[i] + dim3[i];
-      const dimMap = {
-        'Dim 1': dim1[i],
-        'Dim 2': dim2[i],
-        'Dim 3': dim3[i]
-      };
-
-      const value = dimMap[p.seriesName];
-      const marker = `<span style="display:inline-block;margin-right:5px;width:10px;height:10px;border-radius:50%;background:${p.color}"></span>`;
-      return `
-        Report Date: ${date}<br/>
-        ${p.seriesName}: ${value.toLocaleString('en-US')}
-      `;
+      let html = `Report Date: ${date}<br/>`;
+      params.forEach(p => {
+        html += `<span style="display:inline-block;margin-right:5px;width:10px;height:10px;border-radius:50%;background:${p.color}"></span>
+                 ${p.seriesName}: ${p.value.toLocaleString('en-US')}<br/>`;
+      });
+      return html;
     }
-  },
-  legend: {
+  },  legend: {
     bottom: 5,
     icon: 'circle',
     data: ['Dim 1', 'Dim 2', 'Dim 3', 'Dim 4', 'Dim 5']

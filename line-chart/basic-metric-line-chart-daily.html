@@ -51,15 +51,18 @@ option = {
     splitLine: { lineStyle: { type: 'dashed' } }
   },
   tooltip: {
-    show: true,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    formatter: function (params) {
-      const date = params.name;
-      const value = params.value.toLocaleString('en-US');
-      return `Report Date: ${date}<br/>Metrics: ${value}`;
-    }
-  },
-  grid: {
+  trigger: 'axis',
+  show: true,
+  backgroundColor: 'rgba(255,255,255,0.95)',
+  formatter: function (params) {
+    const date = params[0].name;
+    let html = `Report Date: ${date}<br/>`;
+    params.forEach(p => {
+      html += `Metrics: ${p.value.toLocaleString('en-US')}<br/>`;
+    });
+    return html;
+  }
+},  grid: {
     top: 20,
     left: 45,
     right: 20,

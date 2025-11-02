@@ -56,24 +56,17 @@ option = {
     splitLine: { lineStyle: { type: 'dashed' } }
   },
   tooltip: {
-    trigger: 'item',
+    trigger: 'axis', // ✅ thay vì 'item'
     backgroundColor: 'rgba(255,255,255,0.95)',
-    formatter: function (p) {
-      const i = p.dataIndex;
+    formatter: function (params) {
+      const i = params[0].dataIndex;
       const date = categories[i];
-      const total = dim1[i] + dim2[i] + dim3[i];
-      const dimMap = {
-        'Dim 1': dim1[i],
-        'Dim 2': dim2[i],
-        'Dim 3': dim3[i]
-      };
-
-      const value = dimMap[p.seriesName];
-      const marker = `<span style="display:inline-block;margin-right:5px;width:10px;height:10px;border-radius:50%;background:${p.color}"></span>`;
-      return `
-        Report Month: ${date}<br/>
-        ${p.seriesName}: ${value.toLocaleString('en-US')}
-      `;
+      let html = `Report Month: ${date}<br/>`;
+      params.forEach(p => {
+        html += `<span style="display:inline-block;margin-right:5px;width:10px;height:10px;border-radius:50%;background:${p.color}"></span>
+                 ${p.seriesName}: ${p.value.toLocaleString('en-US')}<br/>`;
+      });
+      return html;
     }
   },
   legend: {
