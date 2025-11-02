@@ -49,7 +49,7 @@ option = {
       const pct = ((params.value / total) * 100).toFixed(1);
       return `
         <span style="display:inline-block;margin-right:5px;width:10px;height:10px;border-radius:50%;background:${params.color}"></span>
-        ${params.name}: ${params.value} </br> (${pct}%)
+        ${params.name}: ${params.value} (${pct}%)
       `;
     }
   },
@@ -67,7 +67,7 @@ option = {
       itemStyle: { borderColor: '#fff', borderWidth: 2 },
       label: {
         color: '#333',
-        formatter: '{b}: {d}%',
+        formatter: '{b}:\n{d}%',
         fontSize: 12
       },
       labelLine: { smooth: true, length: 10, length2: 15 },
@@ -96,7 +96,7 @@ option = {
     {
       type: 'text',
       left: 'center',
-      top: '55%',
+      top: '60%',
       style: {
         text: 'Total',
         fontSize: 12,
