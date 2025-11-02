@@ -92,9 +92,8 @@ option = {
     formatter: function (params) {
       const i = params[0].dataIndex;
       const date = categories[i];
-      const total = dim1[i] + dim2[i] + dim3[i];
+      const total = metrics1[i];
       let html = `Report Date: ${date}<br/>`;
-      html += `Metric 1: ${total.toLocaleString('en-US')}<br/>`;
       params.forEach(p => {
         html += `<span style="display:inline-block;margin-right:5px;width:10px;height:10px;border-radius:50%;background:${p.color}"></span>
         ${p.seriesName}: ${p.value.toLocaleString('en-US')}<br/>`;

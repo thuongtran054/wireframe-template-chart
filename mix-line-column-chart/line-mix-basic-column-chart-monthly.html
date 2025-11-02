@@ -32,17 +32,15 @@ const categories = [
   'Jul-25', 'Aug-25', 'Sep-25', 'Oct-25', 'Nov-25', 'Dec-25','Jan-26','Feb-26'
 ];
 
-const dim1 = [480, 500, 390, 510, 195, 310, 500, 595, 510, 505,
-              510, 520, 505, 500];
-const dim2 = [220, 210, 230, 215, 225, 220, 230, 220, 215, 230,
-              225, 220, 230, 225];
-const dim3 = [250, 240, 245, 250, 240, 245, 250, 240, 245, 250,
-              245, 250, 240, 245];
+const metrics1 = [480, 500, 390, 510, 195, 310, 500, 595, 510, 505,
+              510, 520, 505, 500, 510, 515, 520, 590, 600, 810,
+              500, 510, 515, 500, 295, 510, 505, 315, 300, 510];
 
 // === New line data (Metrics 2) ===
 const metrics2 = [
   1150, 940, 930, 970, 980, 990, 940, 980, 960, 970,
-  930, 940, 950, 960
+  930, 940, 950, 960, 970, 960, 950, 970, 980, 990,
+  940, 950, 960, 970, 880, 900, 910, 920, 930, 1000
 ];
 
 // === Chart config ===
@@ -65,7 +63,6 @@ option = {
       nameLocation: 'center',
       nameGap: 45,
       axisLabel: {margin: 12},
-
       
     },
     {
@@ -91,9 +88,8 @@ option = {
     formatter: function (params) {
       const i = params[0].dataIndex;
       const date = categories[i];
-      const total = dim1[i] + dim2[i] + dim3[i];
+      const total = metrics1[i];
       let html = `Report Month: ${date}<br/>`;
-      html += `Metric 1: ${total.toLocaleString('en-US')}<br/>`;
       params.forEach(p => {
         html += `<span style="display:inline-block;margin-right:5px;width:10px;height:10px;border-radius:50%;background:${p.color}"></span>
         ${p.seriesName}: ${p.value.toLocaleString('en-US')}<br/>`;
@@ -104,7 +100,7 @@ option = {
   legend: {
     bottom: 5,
     icon: 'circle',
-    data: ['Dim 1', 'Dim 2', 'Dim 3', 'Metrics 2']
+    data: ['Metrics 1', 'Metrics 2']
   },
   grid: {
     top: 20,
@@ -113,9 +109,7 @@ option = {
     bottom: 60
   },
   series: [
-    { name: 'Dim 1', type: 'bar', stack: 'total', itemStyle: { color: colors[0] }, data: dim1 },
-    { name: 'Dim 2', type: 'bar', stack: 'total', itemStyle: { color: colors[1] }, data: dim2 },
-    { name: 'Dim 3', type: 'bar', stack: 'total', itemStyle: { color: colors[2] }, data: dim3 },
+    { name: 'Metrics 1', type: 'bar', stack: 'total', itemStyle: { color: colors[0] }, data: metrics1 },
     {
       name: 'Metrics 2',
       type: 'line',
@@ -129,9 +123,7 @@ option = {
       data: metrics2
     }
   ]
-};
-
-    const chartDom = document.getElementById('chart');
+};    const chartDom = document.getElementById('chart');
     const myChart = echarts.init(chartDom);
     myChart.setOption(option);
 
