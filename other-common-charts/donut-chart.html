@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pie Chart</title>
+  <title>Donut Chart</title>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
   <style>
     body {
@@ -49,21 +49,21 @@ option = {
       const pct = ((params.value / total) * 100).toFixed(1);
       return `
         <span style="display:inline-block;margin-right:5px;width:10px;height:10px;border-radius:50%;background:${params.color}"></span>
-        ${params.name}: ${params.value} </br>(${pct}%)
+        ${params.name}: ${params.value} </br> (${pct}%)
       `;
     }
   },
   legend: {
     bottom: 5,
     icon: 'circle',
-    data: ['Dim 1', 'Dim 2', 'Dim 3','Dim 4']
+    data: ['Dim 1', 'Dim 2', 'Dim 3', 'Dim 4']
   },
   series: [
     {
       name: 'Composition',
       type: 'pie',
-      radius: ['0%', '70%'], 
-      center: ['50%', '45%'],
+      radius: ['40%', '70%'],
+      center: ['50%', '50%'], // ✅ Giữa thật sự của chart
       itemStyle: { borderColor: '#fff', borderWidth: 2 },
       label: {
         color: '#333',
@@ -76,16 +76,36 @@ option = {
         { value: dim2, name: 'Dim 2', itemStyle: { color: colors[1] }, label: { color: colors[1] } },
         { value: dim3, name: 'Dim 3', itemStyle: { color: colors[2] }, label: { color: colors[2] } },
         { value: dim4, name: 'Dim 4', itemStyle: { color: colors[3] }, label: { color: colors[3] } }
-
       ]
     }
   ],
-  grid: {
-    top: 20,
-    left: 60,
-    right: 60,
-    bottom: 60
-  }
+  graphic: [
+    {
+      type: 'text',
+      left: 'center',
+      top: '48%', // ✅ Căn giữa thật (không bị lệch do legend)
+      style: {
+        text: total.toLocaleString(),
+        fontSize: 28,
+        fontWeight: 'bold',
+        fill: '#333',
+        fontFamily: 'Be Vietnam Pro, sans-serif',
+        textAlign: 'center'
+      }
+    },
+    {
+      type: 'text',
+      left: 'center',
+      top: '55%',
+      style: {
+        text: 'Total',
+        fontSize: 12,
+        fill: '#999',
+        fontFamily: 'Be Vietnam Pro, sans-serif',
+        textAlign: 'center'
+      }
+    }
+  ]
 };
     const chartDom = document.getElementById('chart');
     const myChart = echarts.init(chartDom);
