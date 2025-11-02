@@ -119,7 +119,8 @@ tooltip: {
     { name: 'Dim 2', type: 'line', stack: 'total', itemStyle: { color: colors[1] },symbol: 'none', areaStyle: { opacity: 0.9, color: colors[1] }, data: dim2Pct },
     { name: 'Dim 3', type: 'line', stack: 'total', itemStyle: { color: colors[2] },symbol: 'none', areaStyle: { opacity: 0.9, color: colors[2] }, data: dim3Pct },
   ]
-};    const chartDom = document.getElementById('chart');
+};
+    const chartDom = document.getElementById('chart');
     const myChart = echarts.init(chartDom);
     myChart.setOption(option);
 
