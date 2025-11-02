@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Single Line Area Chart Daily</title>
+  <title>Single Line Area Absolute Chart Daily</title>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
   <style>
     body {
@@ -36,8 +36,7 @@ const categories = [
   '26-10', '27-10', '28-10', '29-10', '30-10'
 ];
 
-// === Absolute data (≈ tổng 1200/ngày) ===
-const dim1 = [480, 500, 390, 510, 195, 310, 500, 595, 510, 505,
+const dim1 = [480, 500, 390, 510, 510, 510, 500, 595, 510, 505,
               510, 520, 505, 500, 510, 515, 520, 590, 600, 810,
               500, 510, 515, 500, 295, 510, 505, 315, 300, 510];
 const dim2 = [220, 210, 230, 215, 225, 220, 230, 220, 215, 230,
@@ -46,20 +45,6 @@ const dim2 = [220, 210, 230, 215, 225, 220, 230, 220, 215, 230,
 const dim3 = [250, 240, 245, 250, 240, 245, 250, 240, 255, 260,
               245, 250, 240, 245, 250, 240, 245, 250, 240, 245,
               250, 245, 240, 250, 240, 245, 250, 240, 245, 250];
-
-// === Convert to percentage for stacked-100 ===
-function toPercentData(dataArrs) {
-  const n = dataArrs[0].length;
-  const totalArr = Array.from({ length: n }, (_, i) =>
-    dataArrs.reduce((sum, arr) => sum + arr[i], 0)
-  );
-  return dataArrs.map(arr =>
-    arr.map((v, i) => (v / totalArr[i] * 100).toFixed(1))
-  );
-}
-
-const [dim1Pct, dim2Pct, dim3Pct] =
-  toPercentData([dim1, dim2, dim3]);
 
 // === Chart config ===
 option = {
@@ -74,42 +59,32 @@ option = {
   },
   yAxis: {
     type: 'value',
-    min: 0,
-    max: 100,
-    axisLabel: { formatter: '{value}%' },
+    axisLabel: {
+      formatter: '{value}'
+    },
     splitLine: { lineStyle: { type: 'dashed' } }
   },
-tooltip: {
-  trigger: 'axis',
-  backgroundColor: 'rgba(255,255,255,0.95)',
-  borderWidth: 0,
-  textStyle: { color: '#333' },
-  axisPointer: {
-    type: 'cross',
-    label: { backgroundColor: '#aaa' }
-  },
-  formatter: function (params) {
-    const date = params[0].axisValue;
-    const total = dim1[params[0].dataIndex] + dim2[params[0].dataIndex] + dim3[params[0].dataIndex];
+  tooltip: {
+    trigger: 'axis',
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderWidth: 0,
+    textStyle: { color: '#333' },
+    axisPointer: {
+      type: 'cross',
+      label: { backgroundColor: '#aaa' }
+    },
+    formatter: function (params) {
+      const date = params[0].axisValue;
+      const total = dim1[params[0].dataIndex] + dim2[params[0].dataIndex] + dim3[params[0].dataIndex];
 
-    let html = `Report Date: ${date}<br/>`;
-    params.forEach(p => {
-      const seriesName = p.seriesName;
-      const value = p.value;
-      const color = p.color;
-      const pct = (
-        {
-          'Dim 1': dim1Pct,
-          'Dim 2': dim2Pct,
-          'Dim 3': dim3Pct
-        }[seriesName][p.dataIndex]
-      );
-      html += `<span style="display:inline-block;margin-right:5px;width:10px;height:10px;border-radius:50%;background:${color}"></span>
-      ${seriesName}: ${value}% <br/>`;
-    });
-    return html;
-  }
-},
+      let html = `Report Date: ${date}<br/>`;
+      params.forEach(p => {
+        html += `<span style="display:inline-block;margin-right:5px;width:10px;height:10px;border-radius:50%;background:${p.color}"></span>
+        ${p.seriesName}: ${p.value.toLocaleString('en-US')}<br/>`;
+      });
+      return html;
+    }
+  },
   legend: {
     bottom: 5,
     icon: 'circle',
@@ -122,9 +97,18 @@ tooltip: {
     bottom: 60
   },
   series: [
-    { name: 'Dim 1', type: 'line', stack: 'total', itemStyle: { color: colors[0] },symbol: 'none', areaStyle: { opacity: 0.9, color: colors[0] }, data: dim1Pct },
-    { name: 'Dim 2', type: 'line', stack: 'total', itemStyle: { color: colors[1] },symbol: 'none', areaStyle: { opacity: 0.9, color: colors[1] }, data: dim2Pct },
-    { name: 'Dim 3', type: 'line', stack: 'total', itemStyle: { color: colors[2] },symbol: 'none', areaStyle: { opacity: 0.9, color: colors[2] }, data: dim3Pct },
+    { name: 'Dim 1', type: 'line', stack: 'total', smooth: false, symbol: 'none',
+      itemStyle: { color: colors[0] },
+      areaStyle: { opacity: 0.9, color: colors[0] },
+      data: dim1 },
+    { name: 'Dim 2', type: 'line', stack: 'total', smooth: false, symbol: 'none',
+      itemStyle: { color: colors[1] },
+      areaStyle: { opacity: 0.9, color: colors[1] },
+      data: dim2 },
+    { name: 'Dim 3', type: 'line', stack: 'total', smooth: false, symbol: 'none',
+      itemStyle: { color: colors[2] },
+      areaStyle: { opacity: 0.9, color: colors[2] },
+      data: dim3 },
   ]
 };
     const chartDom = document.getElementById('chart');
