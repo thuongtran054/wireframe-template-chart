@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Stacked 100% Column Chart Hourly (To 10h)</title>
+  <title>Stacked 100% Column Chart Hourly (To 23h, Data to 10h)</title>
 
   <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 
@@ -29,40 +29,51 @@
     const chartDom = document.getElementById("chart");
     const myChart = echarts.init(chartDom);
 
-    // === Thiết lập Giờ (0:00 đến 10:00) ===
-    const maxHour = 10;
-    const categories = Array.from({ length: maxHour + 1 }, (_, i) => `${i}:00`);
+    // THAY ĐỔI: Thiết lập Giờ (0:00 đến 23:00)
+    const totalHours = 23;
+    const dataDisplayLimit = 10; // Dữ liệu chỉ có giá trị đến 10:00
+    const categories = Array.from({ length: totalHours + 1 }, (_, i) => `${i}:00`);
 
     // === Bộ màu ===
-    // Giữ lại 4 màu đầu cho 4 Stacked Dim
     const colors = ['#145dfc', '#03c950', '#ed5a27', '#9b9b9b', '#f7b500']; 
     
-    // === Dữ liệu ban đầu (lấy 11 giá trị đầu tiên) ===
-    const full_dim1 = [480, 500, 390, 510, 195, 310, 500, 595, 510, 505, 510, 520, 505, 500, 510, 515, 520, 590, 600, 810, 500, 510, 515, 500, 295, 510, 505, 315, 300, 510];
-    const full_dim2 = [220, 210, 230, 215, 225, 220, 230, 220, 215, 230, 225, 220, 230, 225, 220, 215, 220, 230, 225, 220, 225, 230, 220, 215, 220, 225, 230, 225, 215, 220];
-    const full_dim3 = [250, 240, 245, 250, 240, 245, 250, 240, 245, 250, 245, 250, 240, 245, 250, 240, 245, 250, 240, 245, 250, 245, 240, 250, 240, 245, 250, 240, 245, 250];
-    const full_dim4 = [230, 225, 235, 230, 225, 230, 235, 225, 230, 235, 230, 225, 230, 235, 225, 230, 225, 230, 235, 230, 225, 230, 235, 230, 225, 230, 235, 230, 225, 230];
-    const full_dim5 = [220, 210, 215, 220, 215, 210, 215, 220, 215, 210, 215, 220, 210, 215, 220, 215, 210, 215, 220, 215, 210, 215, 220, 215, 210, 215, 220, 215, 210, 215]; // Others
+    // === Dữ liệu tuyệt đối gốc (đến 30 ngày, nhưng ta chỉ cần 24 giờ) ===
+    const full_dim1 = [480, 500, 390, 510, 195, 310, 500, 595, 510, 505, 510, 520, 505, 500, 510, 515, 520, 590, 600, 810, 500, 510, 515, 500]; // 24 giá trị mẫu
+    const full_dim2 = [220, 210, 230, 215, 225, 220, 230, 220, 215, 230, 225, 220, 230, 225, 220, 215, 220, 230, 225, 220, 225, 230, 220, 215];
+    const full_dim3 = [250, 240, 245, 250, 240, 245, 250, 240, 245, 250, 245, 250, 240, 245, 250, 240, 245, 250, 240, 245, 250, 245, 240, 250];
+    const full_dim4 = [230, 225, 235, 230, 225, 230, 235, 225, 230, 235, 230, 225, 230, 235, 225, 230, 225, 230, 235, 230, 225, 230, 235, 230];
+    const full_dim5 = [220, 210, 215, 220, 215, 210, 215, 220, 215, 210, 215, 220, 210, 215, 220, 215, 210, 215, 220, 215, 210, 215, 220, 215];
+
+    // Hàm chuẩn bị dữ liệu: cắt đến dataDisplayLimit và đệm bằng null
+    function prepareData(fullData) {
+        const slicedData = fullData.slice(0, dataDisplayLimit + 1);
+        const nullPadding = Array(totalHours - dataDisplayLimit).fill(null);
+        return slicedData.concat(nullPadding);
+    }
 
     // Cắt dữ liệu tuyệt đối (Absolute data)
-    const dim1 = full_dim1.slice(0, maxHour + 1); // Apple Store
-    const dim2 = full_dim2.slice(0, maxHour + 1); // Google Play Store
-    const dim3 = full_dim3.slice(0, maxHour + 1); // Credit/ Debit (Web)
-    const dim4 = full_dim4.slice(0, maxHour + 1); // QR Code Payment
-    const dim5 = full_dim5.slice(0, maxHour + 1); // Others (Vẫn dùng để tính tổng)
+    const dim1 = prepareData(full_dim1); // Apple Store
+    const dim2 = prepareData(full_dim2); // Google Play Store
+    const dim3 = prepareData(full_dim3); // Credit/ Debit (Web)
+    const dim4 = prepareData(full_dim4); // QR Code Payment
+    const dim5 = prepareData(full_dim5); // Others (Vẫn dùng để tính tổng)
 
     const dataArraysAbs = [dim1, dim2, dim3, dim4, dim5];
     const dimensionNames = ['Apple Store', 'Google Play Store', 'Credit/ Debit (Web)', 'QR Code Payment', 'Others'];
 
-    // Tính Tổng hàng giờ (hourly)
+    // Tính Tổng hàng giờ (hourly) - Giá trị null sẽ được bỏ qua
     const totalArr = Array.from({ length: dim1.length }, (_, i) =>
-      dataArraysAbs.reduce((sum, arr) => sum + arr[i], 0)
+      dataArraysAbs.reduce((sum, arr) => sum + (arr[i] || 0), 0)
     );
     
     // === Hàm chuyển đổi sang Percentage Data (sử dụng tổng 5 dimensions) ===
     function toPercentData(dataArrs) {
       return dataArrs.map(arr =>
-        arr.map((v, i) => totalArr[i] > 0 ? (v / totalArr[i] * 100).toFixed(1) : 0)
+        arr.map((v, i) => {
+            const total = totalArr[i];
+            if (v == null || total === 0) return null;
+            return (v / total * 100).toFixed(1);
+        })
       );
     }
     
@@ -91,6 +102,11 @@
           const i = params[0].dataIndex;
           const currentTotal = totalArr[i];
 
+          // Nếu tổng bằng 0, tức là không có dữ liệu cho giờ này
+          if (currentTotal === 0) {
+            return `<strong>${params[0].axisValue}</strong><br/>Không có dữ liệu.`;
+          }
+
           // Lặp qua 5 series
           params.forEach(p => {
             const dimIndex = p.seriesIndex; // 0=dim1, 1=dim2, ..., 4=dim5
@@ -118,7 +134,6 @@
           fontSize: 12,
           color: "#333"
         },
-        // Chỉ hiện 5 tên Dimensions
         data: dimensionNames
       },
       grid: {
@@ -136,7 +151,6 @@
       },
       yAxis: {
         type: 'value',
-        name: 'Percentage of Total (%)', // Trục Y hiển thị %
         position: 'left',
         min: 0,
         max: 100,
@@ -154,17 +168,16 @@
           fontFamily: 'Be Vietnam Pro',
           fontSize: 11,
           color: '#555',
-          formatter: '{value}%' // Định dạng %
+          formatter: '{value}%'
         }
       },
       series: [
-        // Stacked 100% Bars (YAxisIndex 0, sử dụng dữ liệu Pct)
+        // Stacked 100% Bars (Sử dụng dữ liệu Pct đã được đệm null)
         { name: dimensionNames[0], type: 'bar', stack: 'total', itemStyle: { color: colors[0] }, data: dim1Pct, barGap: '5%', barCategoryGap: '40%' },
         { name: dimensionNames[1], type: 'bar', stack: 'total', itemStyle: { color: colors[1] }, data: dim2Pct },
         { name: dimensionNames[2], type: 'bar', stack: 'total', itemStyle: { color: colors[2] }, data: dim3Pct },
         { name: dimensionNames[3], type: 'bar', stack: 'total', itemStyle: { color: colors[3] }, data: dim4Pct },
         { name: dimensionNames[4], type: 'bar', stack: 'total', itemStyle: { color: colors[4] }, data: dim5Pct }
-        // Line Series đã được loại bỏ
       ]
     };
 
