@@ -102,7 +102,11 @@
           label: {
             show: true,
             position: 'outside',
-            formatter: params => `${params.percent.toFixed(1)}%`,
+            formatter: params => {
+              const value = params.value.toLocaleString();
+              const percent = params.percent.toFixed(1);
+              return `${params.name} (${percent}%)\n${value}`;
+            },
             fontFamily: 'Be Vietnam Pro',
             fontSize: 13,
             color: '#333',
