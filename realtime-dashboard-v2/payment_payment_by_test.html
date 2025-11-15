@@ -3,97 +3,102 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Booking Dashboard Mockup</title>
+<title>Booking Metrics Table</title>
 <style>
   body {
     font-family: 'Be Vietnam Pro', sans-serif;
-    background: #ffffff;
     padding: 20px;
+    background: #fff;
   }
-  h2 { margin-bottom: 10px; }
   table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
   }
   th, td {
     border: 1px solid #ddd;
     padding: 10px 15px;
     text-align: left;
+    vertical-align: middle;
   }
   th {
     background-color: #f5f5f5;
     font-weight: 600;
   }
-  tr:nth-child(even) {
-    background-color: #fafafa;
-  }
-  .positive { color: #03c950; }
-  .negative { color: #ed5a27; }
+  tr:nth-child(even){background-color: #fafafa;}
+  .positive { color: #03c950; font-weight: 600; }
+  .negative { color: #ed5a27; font-weight: 600; }
+  .metric-value { font-weight: 600; }
+  .metric-pct, .metric-compare { font-size: 0.85em; color: #555; }
 </style>
 </head>
 <body>
 
-<h2>Booking Dashboard Mockup</h2>
-
+<h2>Booking Dashboard</h2>
 <table>
   <thead>
     <tr>
       <th>Dimension</th>
       <th>Gross Booking</th>
-      <th>% of Total</th>
       <th>Success Trans</th>
       <th>PU</th>
-      <th>Compare vs Prev</th>
     </tr>
   </thead>
-  <tbody id="table-body">
-    <!-- Rows injected by JS -->
-  </tbody>
+  <tbody id="table-body"></tbody>
 </table>
 
 <script>
-  // Sample data
-  const data = [
-    { dimension: 'package.ws1.royal.web', gross: 120000, prevGross: 100000, success: 110, prevSuccess: 95, pu: 90, prevPU: 85 },
-    { dimension: 'package.ws2.silver.web', gross: 90000, prevGross: 95000, success: 85, prevSuccess: 90, pu: 80, prevPU: 85 },
-    { dimension: 'package.ws3.gold.web', gross: 150000, prevGross: 130000, success: 140, prevSuccess: 120, pu: 130, prevPU: 110 },
-    { dimension: 'package.ws4.platinum.web', gross: 70000, prevGross: 70000, success: 65, prevSuccess: 65, pu: 60, prevPU: 60 },
-    { dimension: 'package.ws5.basic.web', gross: 50000, prevGross: 45000, success: 45, prevSuccess: 42, pu: 40, prevPU: 38 },
-    { dimension: 'package.ws6.standard.web', gross: 60000, prevGross: 55000, success: 55, prevSuccess: 50, pu: 50, prevPU: 48 },
-    { dimension: 'package.ws7.premium.web', gross: 80000, prevGross: 75000, success: 75, prevSuccess: 70, pu: 70, prevPU: 65 }
-  ];
+const data = [
+  { dimension: 'package.ws1.royal.web', gross: 120000, prevGross: 100000, success: 110, prevSuccess: 95, pu: 90, prevPU: 85 },
+  { dimension: 'package.ws2.silver.web', gross: 90000, prevGross: 95000, success: 85, prevSuccess: 90, pu: 80, prevPU: 85 },
+  { dimension: 'package.ws3.gold.web', gross: 150000, prevGross: 130000, success: 140, prevSuccess: 120, pu: 130, prevPU: 110 },
+  { dimension: 'package.ws4.platinum.web', gross: 70000, prevGross: 70000, success: 65, prevSuccess: 65, pu: 60, prevPU: 60 },
+  { dimension: 'package.ws5.basic.web', gross: 50000, prevGross: 45000, success: 45, prevSuccess: 42, pu: 40, prevPU: 38 },
+  { dimension: 'package.ws6.standard.web', gross: 60000, prevGross: 55000, success: 55, prevSuccess: 50, pu: 50, prevPU: 48 },
+  { dimension: 'package.ws7.premium.web', gross: 80000, prevGross: 75000, success: 75, prevSuccess: 70, pu: 70, prevPU: 65 }
+];
 
-  const totalGross = data.reduce((sum, d) => sum + d.gross, 0);
-  const totalSuccess = data.reduce((sum, d) => sum + d.success, 0);
-  const totalPU = data.reduce((sum, d) => sum + d.pu, 0);
+const totalGross = data.reduce((sum,d)=>sum+d.gross,0);
+const totalSuccess = data.reduce((sum,d)=>sum+d.success,0);
+const totalPU = data.reduce((sum,d)=>sum+d.pu,0);
 
-  const tbody = document.getElementById('table-body');
+const tbody = document.getElementById('table-body');
 
-  data.forEach(d => {
-    const tr = document.createElement('tr');
+data.forEach(d=>{
+  const tr = document.createElement('tr');
 
-    const pctTotal = ((d.gross / totalGross) * 100).toFixed(1) + '%';
-    const compareGross = (((d.gross - d.prevGross) / d.prevGross) * 100).toFixed(1);
-    const compareSuccess = (((d.success - d.prevSuccess) / d.prevSuccess) * 100).toFixed(1);
-    const comparePU = (((d.pu - d.prevPU) / d.prevPU) * 100).toFixed(1);
+  const grossPct = ((d.gross/totalGross)*100).toFixed(1)+'%';
+  const grossCompare = (((d.gross-d.prevGross)/d.prevGross)*100).toFixed(1);
+  const grossClass = grossCompare>=0?'positive':'negative';
 
-    const compareGrossClass = compareGross >= 0 ? 'positive' : 'negative';
-    const compareSuccessClass = compareSuccess >= 0 ? 'positive' : 'negative';
-    const comparePUClass = comparePU >= 0 ? 'positive' : 'negative';
+  const successPct = ((d.success/totalSuccess)*100).toFixed(1)+'%';
+  const successCompare = (((d.success-d.prevSuccess)/d.prevSuccess)*100).toFixed(1);
+  const successClass = successCompare>=0?'positive':'negative';
 
-    tr.innerHTML = `
-      <td>${d.dimension}</td>
-      <td>${d.gross.toLocaleString()}</td>
-      <td>${pctTotal}</td>
-      <td>${d.success.toLocaleString()} (<span class="${compareSuccessClass}">${compareSuccess >= 0 ? '+' : ''}${compareSuccess}%</span>)</td>
-      <td>${d.pu.toLocaleString()} (<span class="${comparePUClass}">${comparePU >= 0 ? '+' : ''}${comparePU}%</span>)</td>
-      <td><span class="${compareGrossClass}">${compareGross >= 0 ? '+' : ''}${compareGross}%</span></td>
-    `;
+  const puPct = ((d.pu/totalPU)*100).toFixed(1)+'%';
+  const puCompare = (((d.pu-d.prevPU)/d.prevPU)*100).toFixed(1);
+  const puClass = puCompare>=0?'positive':'negative';
 
-    tbody.appendChild(tr);
-  });
+  tr.innerHTML = `
+    <td>${d.dimension}</td>
+    <td>
+      <div class="metric-value">${d.gross.toLocaleString()}</div>
+      <div class="metric-pct">${grossPct}</div>
+      <div class="metric-compare ${grossClass}">${grossCompare>=0?'+':''}${grossCompare}% vs Prev</div>
+    </td>
+    <td>
+      <div class="metric-value">${d.success.toLocaleString()}</div>
+      <div class="metric-pct">${successPct}</div>
+      <div class="metric-compare ${successClass}">${successCompare>=0?'+':''}${successCompare}% vs Prev</div>
+    </td>
+    <td>
+      <div class="metric-value">${d.pu.toLocaleString()}</div>
+      <div class="metric-pct">${puPct}</div>
+      <div class="metric-compare ${puClass}">${puCompare>=0?'+':''}${puCompare}% vs Prev</div>
+    </td>
+  `;
+
+  tbody.appendChild(tr);
+});
 </script>
-
 </body>
 </html>
