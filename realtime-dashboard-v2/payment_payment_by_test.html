@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Booking Metrics Table with Toggles</title>
+<title>Booking Metrics Table with Toggles and Sorting</title>
 <style>
   body {
     font-family: 'Be Vietnam Pro', sans-serif;
@@ -24,6 +24,10 @@
   th {
     background-color: #f5f5f5;
     font-weight: 600;
+  }
+  /* Style for clickable headers */
+  th:not(:first-child) {
+    cursor: pointer;
   }
   tr:nth-child(even){background-color: #fafafa;}
   .positive { color: #03c950; font-weight: 600; }
@@ -67,7 +71,90 @@ const data = [
 const tbody = document.getElementById('table-body');
 const showPercent = document.getElementById('showPercent');
 const showDoD = document.getElementById('showDoD');
+const headers = document.querySelectorAll('th:not(:first-child)'); 
 
+// State to track current sort column and direction
+let sortState = {
+    column: null,
+    direction: 'asc' // 'asc' or 'desc'
+};
+
+// --- Sorting Logic ---
+function sortData(column) {
+    // Determine new direction
+    let direction = 'asc';
+    if (sortState.column === column) {
+        // Toggle direction if clicking the same column
+        direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+    }
+    
+    // Perform the sort
+    data.sort((a, b) => {
+        const valA = a[column];
+        const valB = b[column];
+
+        if (direction === 'asc') {
+            return valA - valB;
+        } else {
+            return valB - valA;
+        }
+    });
+
+    // Update sort state
+    sortState.column = column;
+    sortState.direction = direction;
+    
+    // Re-render
+    renderTable();
+    updateHeaderIcons();
+}
+
+function updateHeaderIcons() {
+    // Clear all existing icons
+    headers.forEach(header => {
+        // Remove existing triangles (▲ \u25B2 or ▼ \u25BC) from the inner text
+        header.innerHTML = header.innerText.replace(/ \u25B2| \u25BC/g, ''); 
+    });
+
+    if (sortState.column) {
+        // Find the currently sorted header and add the icon
+        const sortedHeader = Array.from(headers).find(h => {
+            const headerText = h.innerText.toLowerCase().replace(/ /g, ''); 
+            // Map header text to the data key
+            if (headerText.includes('grossbooking') && sortState.column === 'gross') return true;
+            if (headerText.includes('successtrans') && sortState.column === 'success') return true;
+            if (headerText === 'pu' && sortState.column === 'pu') return true;
+            return false;
+        });
+
+        if (sortedHeader) {
+            const icon = sortState.direction === 'asc' ? ' \u25B2' : ' \u25BC'; // Up arrow or Down arrow
+            sortedHeader.innerHTML += icon;
+        }
+    }
+}
+
+// Add click listeners to headers
+headers.forEach(header => {
+    // Determine the data key based on header text
+    let dataKey;
+    const text = header.innerText.toLowerCase();
+    if (text.includes('gross booking')) {
+        dataKey = 'gross';
+    } else if (text.includes('success trans')) {
+        dataKey = 'success';
+    } else if (text.includes('pu')) {
+        dataKey = 'pu';
+    }
+
+    if (dataKey) {
+        // Style is handled in CSS, but we attach the event listener here
+        header.addEventListener('click', () => sortData(dataKey));
+    }
+});
+
+
+// --- Rendering Logic ---
 function renderTable() {
   tbody.innerHTML = '';
   const totalGross = data.reduce((sum,d)=>sum+d.gross,0);
@@ -84,8 +171,13 @@ function renderTable() {
       }
       if(showDoD.checked) {
         const diff = ((value-prev)/prev*100).toFixed(1);
-        const cls = diff>=0?'positive':'negative';
-        text += ` <span class="${cls}">${diff>=0?'+':''}${diff}%</span>`;
+        // Handle division by zero for prev value gracefully
+        const safeDiff = prev === 0 ? (value > 0 ? 1000 : 0) : ((value - prev) / prev * 100).toFixed(1);
+        
+        const cls = safeDiff >= 0 ? 'positive' : 'negative';
+        
+        // Use safeDiff for display
+        text += ` <span class="${cls}">${safeDiff >= 0 ? '+' : ''}${safeDiff}%</span>`;
       }
       return text;
     }
@@ -103,6 +195,7 @@ function renderTable() {
 
 // Initial render
 renderTable();
+updateHeaderIcons(); // Ensure headers are initialized correctly
 
 // Event listeners
 showPercent.addEventListener('change', renderTable);
