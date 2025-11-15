@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hourly Gross Booking & Success Transaction</title>
+
+  <!-- ECharts -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: #ffffff;
+    }
+    #chart {
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="chart"></div>
+
+  <script>
+    // === Khởi tạo chart ===
+    const chartDom = document.getElementById("chart");
+    const myChart = echarts.init(chartDom);
+
+    // === Giờ trong ngày ===
+    const categories = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+
+    // === Dữ liệu mẫu ===
+    const revCurrentData = Array.from({ length: 24 }, (_, i) =>
+      i <= 10 ? Math.floor(Math.random() * 200 + 100) : null
+    );
+    const revCompareData = Array.from({ length: 24 }, () =>
+      Math.floor(Math.random() * 200 + 80)
+    );
+    const currentTransactionData = Array.from({ length: 24 }, (_, i) =>
+      i <= 10 ? Math.floor(Math.random() * 3 + 120) : null
+    );
+
+    // === Bộ màu ===
+    const colors = ['#145dfc', '#03c950', '#ed5a27'];
+
+    // === Ngày động ===
+    const today = '2025-10-25';
+    const compare = '2025-10-24';
+
+    // === Cấu hình biểu đồ ===
+    const option = {
+      color: colors,
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'line' },
+        backgroundColor: 'rgba(255,255,255,0.95)',
+        borderWidth: 0,
+        textStyle: { color: '#000', fontFamily: 'Be Vietnam Pro, sans-serif' },
+        formatter: params => {
+          let text = `<div style="font-family:'Be Vietnam Pro',sans-serif;">`;
+          text += `<strong>${params[0].axisValue}</strong><br/>`;
+          params.forEach(p => {
+            const val = p.value != null ? p.value.toLocaleString() : '–';
+            text += `${p.marker} ${p.seriesName}: ${val}<br/>`;
+          });
+          text += `</div>`;
+          return text;
+        }
+      },
+      legend: {
+        bottom: 0,
+        left: "center",
+        icon: "circle",
+        itemWidth: 10,
+        itemHeight: 10,
+        textStyle: {
+          fontFamily: "Be Vietnam Pro",
+          fontSize: 12,
+          color: "#333"
+        },
+        data: [
+          { name: `Gross Booking ${today}` },
+          { name: `Gross Booking ${compare}` },
+          { name: `Transaction ${today}` }
+        ]
+      },
+      grid: {
+        left: 30, right: 30, top: 30, bottom: 40, containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: categories,
+        axisLine: { lineStyle: { color: '#bbb', width: 1.5 } },
+        axisLabel: {
+          fontFamily: 'Be Vietnam Pro',
+          fontSize: 11,
+          color: '#555'
+        }
+      },
+      yAxis: [
+        {
+          type: 'value',
+          name: 'Gross Booking',
+          position: 'left',
+          nameLocation: 'center',
+          nameGap: 45,
+          nameTextStyle: {
+            fontFamily: 'Be Vietnam Pro',
+            fontSize: 11,
+            color: '#333'
+          },
+          splitLine: {
+            lineStyle: { type: 'dashed', color: '#eee' }
+          },
+          axisLabel: {
+            fontFamily: 'Be Vietnam Pro',
+            fontSize: 11,
+            color: '#555',
+            formatter: value => value.toLocaleString()
+          }
+        },
+        {
+          type: 'value',
+          name: 'Transaction',
+          position: 'right',
+          nameLocation: 'center',
+          nameGap: 45,
+          nameTextStyle: {
+            fontFamily: 'Be Vietnam Pro',
+            fontSize: 11,
+            color: '#ed5a27'
+          },
+          splitLine: { show: false },
+          axisLabel: {
+            fontFamily: 'Be Vietnam Pro',
+            fontSize: 11,
+            color: '#ed5a27',
+            formatter: value => value.toLocaleString()
+          }
+        }
+      ],
+      series: [
+        {
+          name: `Gross Booking ${today}`,
+          type: 'bar',
+          data: revCurrentData,
+          barGap: 0,
+          barCategoryGap: '40%'
+        },
+        {
+          name: `Gross Booking ${compare}`,
+          type: 'bar',
+          data: revCompareData
+        },
+        {
+          name: `Transaction ${today}`,
+          type: 'line',
+          yAxisIndex: 1,
+          data: currentTransactionData,
+          smooth: true,
+          symbol: 'none',
+          lineStyle: {
+            width: 2,
+            color: '#ed5a27'
+          },
+          areaStyle: {
+            opacity: 0.25,
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: 'rgba(237, 90, 39, 0.3)' },
+              { offset: 1, color: 'rgba(237, 90, 39, 0)' }
+            ])
+          }
+        }
+      ]
+    };
+
+    // === Vẽ chart ===
+    myChart.setOption(option);
+
+    // === Hiệu ứng ripple cho điểm cuối cùng của Transaction ===
+    const lastIdx = currentTransactionData.findLastIndex(v => v != null);
+    const lastHour = categories[lastIdx];
+    const lastValue = currentTransactionData[lastIdx];
+
+    myChart.setOption({
+      series: [
+        ...option.series,
+        {
+          type: "effectScatter",
+          coordinateSystem: "cartesian2d",
+          data: [[lastHour, lastValue]],
+          symbolSize: 12,
+          rippleEffect: {
+            brushType: "stroke",
+            scale: 4,
+            period: 3
+          },
+          itemStyle: {
+            color: "#ed5a27",
+            shadowBlur: 25,
+            shadowColor: "rgba(237, 90, 39, 0.6)"
+          },
+          tooltip: { show: false },
+          yAxisIndex: 1,
+          zlevel: 3
+        }
+      ]
+    });
+
+    // Auto resize
+    window.addEventListener("resize", () => {
+      myChart.resize();
+    });
+  </script>
+</body>
+</html>
