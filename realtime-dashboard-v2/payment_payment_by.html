@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Booking Table</title>
+  <style>
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: #ffffff;
+      padding: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px 15px;
+      text-align: left;
+    }
+    th {
+      background-color: #f5f5f5;
+      font-weight: 600;
+    }
+    td {
+      font-weight: 400;
+    }
+    tr:nth-child(even) {
+      background-color: #fafafa;
+    }
+  </style>
+</head>
+<body>
+  <h2>Booking Dashboard</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Dimension</th>
+        <th>Gross Booking</th>
+        <th>% Gross Booking of Total</th>
+        <th>Success Trans</th>
+        <th>PU</th>
+      </tr>
+    </thead>
+    <tbody id="table-body">
+      <!-- Rows will be injected by JS -->
+    </tbody>
+  </table>
+
+  <script>
+    // Sample data
+    const data = [
+      { dimension: 'package.ws1.royal.web', gross: 120000, success: 110000, pu: 50000 },
+      { dimension: 'package.ws2.silver.web', gross: 90000, success: 85000, pu: 43000 },
+      { dimension: 'package.ws3.gold.web', gross: 150000, success: 140000, pu: 70000 },
+      { dimension: 'package.ws4.platinum.web', gross: 70000, success: 65000, pu: 30000 },
+      { dimension: 'package.ws5.basic.web', gross: 50000, success: 47000, pu: 25000 },
+      { dimension: 'package.ws6.standard.web', gross: 60000, success: 58000, pu: 29000 },
+      { dimension: 'package.ws7.premium.web', gross: 80000, success: 76000, pu: 36000 }
+    ];
+
+    // Tính tổng Gross Booking
+    const totalGross = data.reduce((sum, d) => sum + d.gross, 0);
+
+    // Thêm dòng vào tbody
+    const tbody = document.getElementById('table-body');
+    data.forEach(d => {
+      const tr = document.createElement('tr');
+
+      const pctGross = ((d.gross / totalGross) * 100).toFixed(1) + '%';
+
+      tr.innerHTML = `
+        <td>${d.dimension}</td>
+        <td>${d.gross.toLocaleString()}</td>
+        <td>${pctGross}</td>
+        <td>${d.success.toLocaleString()}</td>
+        <td>${d.pu.toLocaleString()}</td>
+      `;
+
+      tbody.appendChild(tr);
+    });
+  </script>
+</body>
+</html>
