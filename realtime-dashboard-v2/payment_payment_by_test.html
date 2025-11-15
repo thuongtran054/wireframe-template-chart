@@ -42,13 +42,13 @@
 <div class="toggles">
   <label><input type="checkbox" id="showPercent" checked> Show % of Total</label>
   &nbsp;&nbsp;
-  <label><input type="checkbox" id="showDoD"> Show DoD vs Prev</label>
+  <label><input type="checkbox" id="showDoD"> Show DoD</label>
 </div>
 
 <table>
   <thead>
     <tr>
-      <th>Dimension</th>
+      <th>Top Product</th>
       <th>Gross Booking</th>
       <th>Success Trans</th>
       <th>PU</th>
@@ -76,7 +76,7 @@ const headers = document.querySelectorAll('th:not(:first-child)');
 // THAY ĐỔI: Thiết lập trạng thái mặc định: sort theo 'gross' giảm dần ('desc')
 let sortState = {
     column: 'gross',
-    direction: 'desc' 
+    direction: 'asc' 
 };
 
 // --- Sorting Logic ---
