@@ -14,16 +14,18 @@
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
+    font-size: 14px; /* Tăng tính gọn gàng cho nhiều cột */
   }
   th, td {
     border: 1px solid #ddd;
-    padding: 10px 15px;
+    padding: 8px 10px; /* Giảm padding */
     text-align: left;
     vertical-align: middle;
   }
   th {
     background-color: #f5f5f5;
     font-weight: 600;
+    white-space: nowrap; /* Ngăn tiêu đề bị xuống dòng */
   }
   /* Style for clickable headers */
   th:not(:first-child) {
@@ -52,31 +54,36 @@
       <th>Gross Booking</th>
       <th>Success Trans</th>
       <th>PU</th>
+      <th>AOV</th>
+      <th>ARPPU</th>
+      <th>Frequency</th>
     </tr>
   </thead>
   <tbody id="table-body"></tbody>
 </table>
 
 <script>
+// Cập nhật dữ liệu với 3 metrics mới (AOV, ARPPU, Frequency)
 const data = [
-  { dimension: 'package.ws1.royal.web', gross: 120000, prevGross: 100000, success: 110, prevSuccess: 95, pu: 90, prevPU: 85 },
-  { dimension: 'package.ws2.silver.web', gross: 90000, prevGross: 95000, success: 85, prevSuccess: 90, pu: 80, prevPU: 85 },
-  { dimension: 'package.ws3.gold.web', gross: 150000, prevGross: 130000, success: 140, prevSuccess: 120, pu: 130, prevPU: 110 },
-  { dimension: 'package.ws4.platinum.web', gross: 70000, prevGross: 70000, success: 65, prevSuccess: 65, pu: 60, prevPU: 60 },
-  { dimension: 'package.ws5.basic.web', gross: 50000, prevGross: 45000, success: 45, prevSuccess: 42, pu: 40, prevPU: 38 },
-  { dimension: 'package.ws6.standard.web', gross: 60000, prevGross: 55000, success: 55, prevSuccess: 50, pu: 50, prevPU: 48 },
-  { dimension: 'package.ws7.premium.web', gross: 80000, prevGross: 75000, success: 75, prevSuccess: 70, pu: 70, prevPU: 65 }
+  { dimension: 'package.ws1.royal.web', gross: 120000, prevGross: 100000, success: 110, prevSuccess: 95, pu: 90, prevPU: 85, aov: 1090.9, prevAOV: 1052.6, arppu: 1333.3, prevARPPU: 1176.5, frequency: 1.2, prevFrequency: 1.1 },
+  { dimension: 'package.ws2.silver.web', gross: 90000, prevGross: 95000, success: 85, prevSuccess: 90, pu: 80, prevPU: 85, aov: 1058.8, prevAOV: 1055.6, arppu: 1125.0, prevARPPU: 1117.6, frequency: 1.1, prevFrequency: 1.0 },
+  { dimension: 'package.ws3.gold.web', gross: 150000, prevGross: 130000, success: 140, prevSuccess: 120, pu: 130, prevPU: 110, aov: 1071.4, prevAOV: 1083.3, arppu: 1153.8, prevARPPU: 1181.8, frequency: 1.0, prevFrequency: 1.0 },
+  { dimension: 'package.ws4.platinum.web', gross: 70000, prevGross: 70000, success: 65, prevSuccess: 65, pu: 60, prevPU: 60, aov: 1076.9, prevAOV: 1076.9, arppu: 1166.7, prevARPPU: 1166.7, frequency: 1.3, prevFrequency: 1.2 },
+  { dimension: 'package.ws5.basic.web', gross: 50000, prevGross: 45000, success: 45, prevSuccess: 42, pu: 40, prevPU: 38, aov: 1111.1, prevAOV: 1071.4, arppu: 1250.0, prevARPPU: 1184.2, frequency: 1.5, prevFrequency: 1.4 },
+  { dimension: 'package.ws6.standard.web', gross: 60000, prevGross: 55000, success: 55, prevSuccess: 50, pu: 50, prevPU: 48, aov: 1090.9, prevAOV: 1100.0, arppu: 1200.0, prevARPPU: 1145.8, frequency: 1.1, prevFrequency: 1.1 },
+  { dimension: 'package.ws7.premium.web', gross: 80000, prevGross: 75000, success: 75, prevSuccess: 70, pu: 70, prevPU: 65, aov: 1066.7, prevAOV: 1071.4, arppu: 1142.9, prevARPPU: 1153.8, frequency: 1.0, prevFrequency: 1.0 }
 ];
 
 const tbody = document.getElementById('table-body');
 const showPercent = document.getElementById('showPercent');
 const showDoD = document.getElementById('showDoD');
+// Cập nhật: Chọn tất cả các header trừ cột Dimension đầu tiên
 const headers = document.querySelectorAll('th:not(:first-child)'); 
 
 // THAY ĐỔI: Thiết lập trạng thái mặc định: sort theo 'gross' giảm dần ('desc')
 let sortState = {
     column: 'gross',
-    direction: 'asc' 
+    direction: 'desc' 
 };
 
 // --- Sorting Logic ---
@@ -112,20 +119,29 @@ function sortData(column) {
 function updateHeaderIcons() {
     // Clear all existing icons
     headers.forEach(header => {
-        // Remove existing triangles (▲ \u25B2 or ▼ \u25BC) from the inner text
-        header.innerHTML = header.innerText.replace(/ \u25B2| \u25BC/g, ''); 
+        // Lưu trữ nội dung ban đầu (không có icon)
+        let originalText = header.getAttribute('data-original-text');
+        if (!originalText) {
+            originalText = header.innerText.replace(/ \u25B2| \u25BC/g, '').trim();
+            header.setAttribute('data-original-text', originalText);
+        }
+        header.innerHTML = originalText;
     });
 
     if (sortState.column) {
-        // Find the currently sorted header and add the icon
-        const sortedHeader = Array.from(headers).find(h => {
-            const headerText = h.innerText.toLowerCase().replace(/ /g, ''); 
-            // Map header text to the data key
-            if (headerText.includes('grossbooking') && sortState.column === 'gross') return true;
-            if (headerText.includes('successtrans') && sortState.column === 'success') return true;
-            if (headerText === 'pu' && sortState.column === 'pu') return true;
-            return false;
-        });
+        // Mapping các key mới
+        const keyMap = {
+            'gross': 'Gross Booking',
+            'success': 'Success Trans',
+            'pu': 'PU',
+            'aov': 'AOV',
+            'arppu': 'ARPPU',
+            'frequency': 'Frequency'
+        };
+
+        const targetHeaderText = keyMap[sortState.column];
+        
+        const sortedHeader = Array.from(headers).find(h => h.getAttribute('data-original-text') === targetHeaderText);
 
         if (sortedHeader) {
             const icon = sortState.direction === 'asc' ? ' \u25B2' : ' \u25BC'; // Up arrow or Down arrow
@@ -136,19 +152,28 @@ function updateHeaderIcons() {
 
 // Add click listeners to headers
 headers.forEach(header => {
-    // Determine the data key based on header text
+    // Lấy data key dựa trên nội dung header
     let dataKey;
     const text = header.innerText.toLowerCase();
+    
     if (text.includes('gross booking')) {
         dataKey = 'gross';
     } else if (text.includes('success trans')) {
         dataKey = 'success';
     } else if (text.includes('pu')) {
         dataKey = 'pu';
+    } else if (text.includes('aov')) {
+        dataKey = 'aov';
+    } else if (text.includes('arppu')) {
+        dataKey = 'arppu';
+    } else if (text.includes('frequency')) {
+        dataKey = 'frequency';
     }
 
+    // Lưu trữ text ban đầu để dễ dàng khôi phục khi cập nhật icon
+    header.setAttribute('data-original-text', header.innerText);
+
     if (dataKey) {
-        // Style is handled in CSS, but we attach the event listener here
         header.addEventListener('click', () => sortData(dataKey));
     }
 });
@@ -157,36 +182,46 @@ headers.forEach(header => {
 // --- Rendering Logic ---
 function renderTable() {
   tbody.innerHTML = '';
+  // Tính tổng cho các cột cần tính % (chỉ Gross, Success, PU)
   const totalGross = data.reduce((sum,d)=>sum+d.gross,0);
   const totalSuccess = data.reduce((sum,d)=>sum+d.success,0);
   const totalPU = data.reduce((sum,d)=>sum+d.pu,0);
 
+
   data.forEach(d=>{
     const tr = document.createElement('tr');
 
-    function formatAdditional(value, total, prev) {
+    // Hàm format chung cho các chỉ số
+    function formatAdditional(value, total, prev, isPercentTotalEnabled = true, decimalPlaces = 0) {
       let text = '';
-      if(showPercent.checked) {
-        text += ` (${((value/total)*100).toFixed(1)}%)`;
+      let formattedValue = value.toLocaleString(undefined, { minimumFractionDigits: decimalPlaces, maximumFractionDigits: decimalPlaces });
+
+      if(isPercentTotalEnabled && showPercent.checked) {
+        // Chỉ hiển thị % of Total cho Gross, Success, PU
+        if (total > 0) {
+            text += ` (${((value/total)*100).toFixed(1)}%)`;
+        }
       }
+      
       if(showDoD.checked) {
-        const diff = ((value-prev)/prev*100).toFixed(1);
-        // Handle division by zero for prev value gracefully
-        const safeDiff = prev === 0 ? (value > 0 ? 1000 : 0) : ((value - prev) / prev * 100).toFixed(1);
+        const safeDiff = (prev === 0 || isNaN(prev)) ? (value > 0 ? 1000 : 0) : ((value - prev) / prev * 100);
+        const safeDiffFixed = safeDiff.toFixed(1);
         
         const cls = safeDiff >= 0 ? 'positive' : 'negative';
         
-        // Use safeDiff for display
-        text += ` <span class="${cls}">${safeDiff >= 0 ? '+' : ''}${safeDiff}%</span>`;
+        text += ` <span class="${cls}">${safeDiff >= 0 ? '+' : ''}${safeDiffFixed}%</span>`;
       }
-      return text;
+      return formattedValue + text;
     }
 
     tr.innerHTML = `
       <td>${d.dimension}</td>
-      <td>${d.gross.toLocaleString()}${formatAdditional(d.gross,totalGross,d.prevGross)}</td>
-      <td>${d.success.toLocaleString()}${formatAdditional(d.success,totalSuccess,d.prevSuccess)}</td>
-      <td>${d.pu.toLocaleString()}${formatAdditional(d.pu,totalPU,d.prevPU)}</td>
+      <td>${formatAdditional(d.gross, totalGross, d.prevGross, true, 0)}</td>
+      <td>${formatAdditional(d.success, totalSuccess, d.prevSuccess, true, 0)}</td>
+      <td>${formatAdditional(d.pu, totalPU, d.prevPU, true, 0)}</td>
+      <td>${formatAdditional(d.aov, 0, d.prevAOV, false, 1)}</td>
+      <td>${formatAdditional(d.arppu, 0, d.prevARPPU, false, 1)}</td>
+      <td>${formatAdditional(d.frequency, 0, d.prevFrequency, false, 1)}</td>
     `;
 
     tbody.appendChild(tr);
