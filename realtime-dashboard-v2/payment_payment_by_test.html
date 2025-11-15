@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Booking Metrics Table</title>
+<title>Booking Metrics Table with Toggles</title>
 <style>
   body {
     font-family: 'Be Vietnam Pro', sans-serif;
@@ -28,18 +28,18 @@
   tr:nth-child(even){background-color: #fafafa;}
   .positive { color: #03c950; font-weight: 600; }
   .negative { color: #ed5a27; font-weight: 600; }
+  .toggles {
+    margin-bottom: 10px;
+  }
 </style>
 </head>
 <body>
 
-<h2>Booking Dashboard</h2>
-
-<label for="displayMode">Additional Display:</label>
-<select id="displayMode">
-  <option value="none" selected>None</option>
-  <option value="pct">% of Total</option>
-  <option value="compare">Compare vs Prev</option>
-</select>
+<div class="toggles">
+  <label><input type="checkbox" id="showPercent"> Show % of Total</label>
+  &nbsp;&nbsp;
+  <label><input type="checkbox" id="showDoD"> Show DoD vs Prev</label>
+</div>
 
 <table>
   <thead>
@@ -65,9 +65,10 @@ const data = [
 ];
 
 const tbody = document.getElementById('table-body');
-const displayMode = document.getElementById('displayMode');
+const showPercent = document.getElementById('showPercent');
+const showDoD = document.getElementById('showDoD');
 
-function renderTable(mode) {
+function renderTable() {
   tbody.innerHTML = '';
   const totalGross = data.reduce((sum,d)=>sum+d.gross,0);
   const totalSuccess = data.reduce((sum,d)=>sum+d.success,0);
@@ -77,20 +78,23 @@ function renderTable(mode) {
     const tr = document.createElement('tr');
 
     function formatAdditional(value, total, prev) {
-      if(mode==='pct') return `(${((value/total)*100).toFixed(1)}%)`;
-      if(mode==='compare') {
+      let text = '';
+      if(showPercent.checked) {
+        text += ` (${((value/total)*100).toFixed(1)}%)`;
+      }
+      if(showDoD.checked) {
         const diff = ((value-prev)/prev*100).toFixed(1);
         const cls = diff>=0?'positive':'negative';
-        return `<span class="${cls}">${diff>=0?'+':''}${diff}% vs Prev</span>`;
+        text += ` <span class="${cls}">${diff>=0?'+':''}${diff}%</span>`;
       }
-      return '';
+      return text;
     }
 
     tr.innerHTML = `
       <td>${d.dimension}</td>
-      <td>${d.gross.toLocaleString()} ${formatAdditional(d.gross,totalGross,d.prevGross)}</td>
-      <td>${d.success.toLocaleString()} ${formatAdditional(d.success,totalSuccess,d.prevSuccess)}</td>
-      <td>${d.pu.toLocaleString()} ${formatAdditional(d.pu,totalPU,d.prevPU)}</td>
+      <td>${d.gross.toLocaleString()}${formatAdditional(d.gross,totalGross,d.prevGross)}</td>
+      <td>${d.success.toLocaleString()}${formatAdditional(d.success,totalSuccess,d.prevSuccess)}</td>
+      <td>${d.pu.toLocaleString()}${formatAdditional(d.pu,totalPU,d.prevPU)}</td>
     `;
 
     tbody.appendChild(tr);
@@ -98,12 +102,11 @@ function renderTable(mode) {
 }
 
 // Initial render
-renderTable(displayMode.value);
+renderTable();
 
-// Change handler
-displayMode.addEventListener('change', e=>{
-  renderTable(e.target.value);
-});
+// Event listeners
+showPercent.addEventListener('change', renderTable);
+showDoD.addEventListener('change', renderTable);
 </script>
 
 </body>
