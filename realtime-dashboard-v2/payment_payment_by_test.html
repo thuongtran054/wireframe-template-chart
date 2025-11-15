@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Booking Metrics Table</title>
 <style>
   body {
@@ -13,6 +13,7 @@
   table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 10px;
   }
   th, td {
     border: 1px solid #ddd;
@@ -27,13 +28,19 @@
   tr:nth-child(even){background-color: #fafafa;}
   .positive { color: #03c950; font-weight: 600; }
   .negative { color: #ed5a27; font-weight: 600; }
-  .metric-value { font-weight: 600; }
-  .metric-pct, .metric-compare { font-size: 0.85em; color: #555; }
 </style>
 </head>
 <body>
 
 <h2>Booking Dashboard</h2>
+
+<label for="displayMode">Additional Display:</label>
+<select id="displayMode">
+  <option value="none" selected>None</option>
+  <option value="pct">% of Total</option>
+  <option value="compare">Compare vs Prev</option>
+</select>
+
 <table>
   <thead>
     <tr>
@@ -57,48 +64,47 @@ const data = [
   { dimension: 'package.ws7.premium.web', gross: 80000, prevGross: 75000, success: 75, prevSuccess: 70, pu: 70, prevPU: 65 }
 ];
 
-const totalGross = data.reduce((sum,d)=>sum+d.gross,0);
-const totalSuccess = data.reduce((sum,d)=>sum+d.success,0);
-const totalPU = data.reduce((sum,d)=>sum+d.pu,0);
-
 const tbody = document.getElementById('table-body');
+const displayMode = document.getElementById('displayMode');
 
-data.forEach(d=>{
-  const tr = document.createElement('tr');
+function renderTable(mode) {
+  tbody.innerHTML = '';
+  const totalGross = data.reduce((sum,d)=>sum+d.gross,0);
+  const totalSuccess = data.reduce((sum,d)=>sum+d.success,0);
+  const totalPU = data.reduce((sum,d)=>sum+d.pu,0);
 
-  const grossPct = ((d.gross/totalGross)*100).toFixed(1)+'%';
-  const grossCompare = (((d.gross-d.prevGross)/d.prevGross)*100).toFixed(1);
-  const grossClass = grossCompare>=0?'positive':'negative';
+  data.forEach(d=>{
+    const tr = document.createElement('tr');
 
-  const successPct = ((d.success/totalSuccess)*100).toFixed(1)+'%';
-  const successCompare = (((d.success-d.prevSuccess)/d.prevSuccess)*100).toFixed(1);
-  const successClass = successCompare>=0?'positive':'negative';
+    function formatAdditional(value, total, prev) {
+      if(mode==='pct') return `(${((value/total)*100).toFixed(1)}%)`;
+      if(mode==='compare') {
+        const diff = ((value-prev)/prev*100).toFixed(1);
+        const cls = diff>=0?'positive':'negative';
+        return `<span class="${cls}">${diff>=0?'+':''}${diff}% vs Prev</span>`;
+      }
+      return '';
+    }
 
-  const puPct = ((d.pu/totalPU)*100).toFixed(1)+'%';
-  const puCompare = (((d.pu-d.prevPU)/d.prevPU)*100).toFixed(1);
-  const puClass = puCompare>=0?'positive':'negative';
+    tr.innerHTML = `
+      <td>${d.dimension}</td>
+      <td>${d.gross.toLocaleString()} ${formatAdditional(d.gross,totalGross,d.prevGross)}</td>
+      <td>${d.success.toLocaleString()} ${formatAdditional(d.success,totalSuccess,d.prevSuccess)}</td>
+      <td>${d.pu.toLocaleString()} ${formatAdditional(d.pu,totalPU,d.prevPU)}</td>
+    `;
 
-  tr.innerHTML = `
-    <td>${d.dimension}</td>
-    <td>
-      <div class="metric-value">${d.gross.toLocaleString()}</div>
-      <div class="metric-pct">${grossPct}</div>
-      <div class="metric-compare ${grossClass}">${grossCompare>=0?'+':''}${grossCompare}% vs Prev</div>
-    </td>
-    <td>
-      <div class="metric-value">${d.success.toLocaleString()}</div>
-      <div class="metric-pct">${successPct}</div>
-      <div class="metric-compare ${successClass}">${successCompare>=0?'+':''}${successCompare}% vs Prev</div>
-    </td>
-    <td>
-      <div class="metric-value">${d.pu.toLocaleString()}</div>
-      <div class="metric-pct">${puPct}</div>
-      <div class="metric-compare ${puClass}">${puCompare>=0?'+':''}${puCompare}% vs Prev</div>
-    </td>
-  `;
+    tbody.appendChild(tr);
+  });
+}
 
-  tbody.appendChild(tr);
+// Initial render
+renderTable(displayMode.value);
+
+// Change handler
+displayMode.addEventListener('change', e=>{
+  renderTable(e.target.value);
 });
 </script>
+
 </body>
 </html>
