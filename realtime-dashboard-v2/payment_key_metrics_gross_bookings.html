@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gauge Counter</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      height: 100vh;
+    }
+    #chart {
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="chart"></div>
+
+  <script>
+    // Khởi tạo chart
+    const chartDom = document.getElementById('chart');
+    const myChart = echarts.init(chartDom);
+
+    // Giá trị khởi tạo
+    var currentValue = 1293000000;
+
+    // Hàm rút gọn số (B / M / K / T)
+    function formatShortNumber(num) {
+      if (num >= 1e12) return (num / 1e12).toFixed(1) + "T";
+      if (num >= 1e9)  return (num / 1e9).toFixed(1) + "B";
+      if (num >= 1e6)  return (num / 1e6).toFixed(1) + "M";
+      if (num >= 1e3)  return (num / 1e3).toFixed(1) + "K";
+      return num.toString();
+    }
+
+    // Hàm tạo option
+    function getOption(value) {
+      return {
+        tooltip: {
+          show: true,
+          formatter: function (params) {
+            const fullValue = params.data.value;
+            return fullValue.toLocaleString('en-US'); // FULL NUMBER
+          },
+          backgroundColor: "rgba(255,255,255,0.95)",
+          borderWidth: 0,
+          textStyle: {
+            fontFamily: "Be Vietnam Pro",
+            color: "#000"
+          }
+        },
+
+        series: [
+          {
+            type: 'gauge',
+            data: [{ value: value }],
+            axisLine: { show: false },
+            splitLine: { show: false },
+            axisTick: { show: false },
+            axisLabel: { show: false },
+            pointer: { show: false },
+
+            detail: {
+              formatter: function (v) {
+                return formatShortNumber(v); // RÚT GỌN
+              },
+              offsetCenter: ['0%', '0%'],
+              textStyle: {
+                fontSize: 40,
+                fontFamily: 'Be Vietnam Pro',
+                fontWeight: 'bold',
+                color: '#145dfc'
+              }
+            }
+          }
+        ]
+      };
+    }
+
+    // Render ban đầu
+    myChart.setOption(getOption(currentValue));
+
+    // Tăng giá trị mỗi 5 giây
+    setInterval(function () {
+      var step = Math.floor(Math.random() * 10000) + 1000000000;
+      currentValue += step;
+      myChart.setOption(getOption(currentValue));
+    }, 5000);
+
+    // Responsive
+    window.addEventListener('resize', () => {
+      myChart.resize();
+    });
+  </script>
+</body>
+</html>
