@@ -30,30 +30,18 @@
   <div id="chart"></div>
 
   <script>
-    // Khởi tạo chart
     const chartDom = document.getElementById('chart');
     const myChart = echarts.init(chartDom);
 
-    // Giá trị khởi tạo
     var currentValue = 1293000000;
 
-    // Hàm rút gọn số (B / M / K / T)
-    function formatShortNumber(num) {
-      if (num >= 1e12) return (num / 1e12).toFixed(1) + "T";
-      if (num >= 1e9)  return (num / 1e9).toFixed(1) + "B";
-      if (num >= 1e6)  return (num / 1e6).toFixed(1) + "M";
-      if (num >= 1e3)  return (num / 1e3).toFixed(1) + "K";
-      return num.toString();
-    }
-
-    // Hàm tạo option
     function getOption(value) {
       return {
         tooltip: {
           show: true,
           formatter: function (params) {
             const fullValue = params.data.value;
-            return fullValue.toLocaleString('en-US'); // FULL NUMBER
+            return fullValue.toLocaleString('en-US');
           },
           backgroundColor: "rgba(255,255,255,0.95)",
           borderWidth: 0,
@@ -75,7 +63,7 @@
 
             detail: {
               formatter: function (v) {
-                return formatShortNumber(v); // RÚT GỌN
+                return v.toLocaleString('en-US'); // ✨ HIỂN THỊ NGUYÊN SỐ
               },
               offsetCenter: ['-40%', '0%'],
               textStyle: {
@@ -90,17 +78,14 @@
       };
     }
 
-    // Render ban đầu
     myChart.setOption(getOption(currentValue));
 
-    // Tăng giá trị mỗi 5 giây
     setInterval(function () {
       var step = Math.floor(Math.random() * 10000) + 1000000000;
       currentValue += step;
       myChart.setOption(getOption(currentValue));
     }, 5000);
 
-    // Responsive
     window.addEventListener('resize', () => {
       myChart.resize();
     });
