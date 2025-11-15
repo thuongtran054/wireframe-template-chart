@@ -40,7 +40,7 @@
 <body>
 
 <div class="toggles">
-  <label><input type="checkbox" id="showPercent"> Show % of Total</label>
+  <label><input type="checkbox" id="showPercent" checked> Show % of Total</label>
   &nbsp;&nbsp;
   <label><input type="checkbox" id="showDoD"> Show DoD vs Prev</label>
 </div>
@@ -73,10 +73,10 @@ const showPercent = document.getElementById('showPercent');
 const showDoD = document.getElementById('showDoD');
 const headers = document.querySelectorAll('th:not(:first-child)'); 
 
-// State to track current sort column and direction
+// THAY ĐỔI: Thiết lập trạng thái mặc định: sort theo 'gross' giảm dần ('desc')
 let sortState = {
-    column: null,
-    direction: 'asc' // 'asc' or 'desc'
+    column: 'gross',
+    direction: 'desc' 
 };
 
 // --- Sorting Logic ---
@@ -193,9 +193,9 @@ function renderTable() {
   });
 }
 
-// Initial render
-renderTable();
-updateHeaderIcons(); // Ensure headers are initialized correctly
+// THAY ĐỔI: Chạy sortData('gross') với hướng mặc định 'desc'
+sortData('gross'); 
+updateHeaderIcons(); // Cập nhật icon sort
 
 // Event listeners
 showPercent.addEventListener('change', renderTable);
