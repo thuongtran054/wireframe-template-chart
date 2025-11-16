@@ -49,7 +49,7 @@
 <body>
 
 <div class="toggles">
-  <label>Additional Metric:</label>
+  <label>Show:</label>
   
   <label><input type="radio" name="displayMode" value="percent" checked> % of Total</label>
   <label><input type="radio" name="displayMode" value="dod"> DoD (Full Day)</label>
@@ -94,7 +94,7 @@ const displayRadios = document.querySelectorAll('input[name="displayMode"]');
 
 let sortState = {
     column: 'gross',
-    direction: 'desc'
+    direction: 'asc'
 };
 
 // --- Sorting Logic (Không đổi) ---
@@ -211,7 +211,7 @@ function renderTable() {
         // Chế độ: DoD hoặc Same Time DoD
         
         let compareValue = (selectedMode === 'dod') ? prevFullDay : prevSameTime;
-        // let label = (selectedMode === 'dod') ? '[D]' : '[ST]';
+        let label = (selectedMode === 'dod') ? ',' : ',';
         
         if (compareValue === 0 || isNaN(compareValue) || compareValue === undefined) {
              additionalText = ` <span class="negative">${label} N/A</span>`;
