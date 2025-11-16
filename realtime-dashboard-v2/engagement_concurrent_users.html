@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Concurrent Users Chart</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      margin: 0;
+      background: #fff;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #chart {
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="chart"></div>
+
+<script>
+  const hours = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+
+  // ===========================
+  //  Data mẫu
+  // ===========================
+
+  // CCU Today — user hay online lúc 10pm
+  const ccuToday = hours.map((h, i) => {
+    if (i < 20) return Math.floor(200 + i * 20);
+    if (i === 22) return 2100;    // peak lúc 22:00
+    return Math.floor(1500 + Math.random() * 200);
+  });
+
+  // CCU Compare — user hay online lúc 9pm
+  const ccuCompare = hours.map((h, i) => {
+    if (i < 19) return Math.floor(150 + i * 25);
+    if (i === 21) return 1900;   // peak lúc 21:00
+    return Math.floor(1300 + Math.random() * 200);
+  });
+
+  // Active Servers — constant line
+  const serverCount = 6;
+  const activeServers = hours.map(() => serverCount);
+
+  const option = {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'line' },
+      backgroundColor: 'rgba(255,255,255,0.95)',
+      textStyle: { fontFamily: 'Be Vietnam Pro', color: '#000' },
+      formatter: params => {
+        let html = `<strong>${params[0].axisValue}</strong><br/>`;
+        params.forEach(p => {
+          const marker =
+            `<span style="display:inline-block;width:10px;height:10px;border-radius:10px;margin-right:4px;background:${p.color}"></span>`;
+          html += `${marker} ${p.seriesName}: ${p.value.toLocaleString()}<br/>`;
+        });
+        return html;
+      }
+    },
+
+    legend: {
+      bottom: 0,
+      left: "center",
+      icon: "circle",
+      textStyle: { fontFamily: 'Be Vietnam Pro' },
+      data: [
+        "CCU Today 2025-11-14",
+        "CCU Compare Date 2025-11-13",
+        "Active Servers Today"
+      ],
+    },
+
+    grid: {
+      top: 40,
+      left: 60,
+      right: 30,
+      bottom: 60,
+    },
+
+    xAxis: {
+      type: 'category',
+      data: hours,
+      boundaryGap: false,
+      axisLabel: { fontFamily: 'Be Vietnam Pro' }
+    },
+
+    yAxis: {
+      type: 'value',
+      axisLabel: {
+        fontFamily: 'Be Vietnam Pro',
+        formatter: v => v.toLocaleString()
+      },
+      splitLine: { lineStyle: { type: 'dashed' } },
+    },
+
+    series: [
+      {
+        name: "CCU Today 2025-11-14",
+        type: "line",
+        data: ccuToday,
+        lineStyle: { width: 3, color: "#145dfc" },
+        itemStyle: { color: "#145dfc" },
+        showSymbol: false,
+      },
+      {
+        name: "CCU Compare Date 2025-11-13",
+        type: "line",
+        data: ccuCompare,
+        lineStyle: { width: 2, color: "#03c950", type: "dashed" },
+        itemStyle: { color: "#03c950" },
+        showSymbol: false,
+      },
+      {
+        name: "Active Servers Today",
+        type: "line",
+        data: activeServers,
+        lineStyle: { width: 2, color: "#ff9900" },
+        itemStyle: { color: "#ff9900" },
+        symbol: "none",
+      }
+    ]
+  };
+
+  const chart = echarts.init(document.getElementById("chart"));
+  chart.setOption(option);
+
+  window.addEventListener("resize", () => chart.resize());
+</script>
+
+</body>
+</html>
