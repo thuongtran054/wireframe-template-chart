@@ -1,117 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>CCU Comparison Chart</title>
-<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
-<style>
-  body { font-family: 'Be Vietnam Pro', sans-serif; background:#fff; padding:20px; }
-  #ccuChart { width:100%; height:420px; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <title>CCU Minute Chart</title>
+  <style>
+    body {
+      margin: 0;
+      background: #fff;
+      font-family: 'Be Vietnam Pro', sans-serif;
+    }
+    #chart {
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
 </head>
 <body>
 
-<div id="ccuChart"></div>
+<div id="chart"></div>
 
 <script>
-// ------- Sample Data (thay bằng dữ liệu thực của bạn) -------
-const minutes = Array.from({length: 1440}, (_, i) => `${String(Math.floor(i/60)).padStart(2,'0')}:${String(i%60).padStart(2,'0')}`);
+  const minuteCount = 180; // 3 hours (đổi thành 1440 nếu muốn full 24h)
+  const start = new Date("2025-11-14 00:00:00");
 
-const ccu_today = minutes.map((t,i)=> 2000 + Math.sin(i/50)*200 + (i>1320 && i<1360?500:0));       // CCU today (10PM peak)
-const ccu_compare = minutes.map((t,i)=> 1800 + Math.sin(i/45)*180 + (i>1260 && i<1300?450:0));   // CCU compare (9PM peak)
-const active_servers = minutes.map(()=> 5 + Math.round(Math.random())); // 5–6 servers
-// ------------------------------------------------------------
+  // ===== Generate Minutes =====
+  const labels = [];
+  for (let i = 0; i < minuteCount; i++) {
+    const d = new Date(start.getTime() + i * 60000);
+    labels.push(
+      d.toTimeString().slice(0, 5) // HH:mm
+    );
+  }
 
-// Setup chart
-let chart = echarts.init(document.getElementById('ccuChart'));
+  // ===== CCU Pattern (giống ảnh) =====
+  function generateCCUPattern() {
+    let arr = [];
+    let base = 18; // start around 18 users
 
-chart.setOption({
+    for (let i = 0; i < minuteCount; i++) {
+      // random strong fluctuation (zigzag)
+      const noise = (Math.random() - 0.5) * 6;
+
+      // gradually trend downward then upward
+      const trend =
+        Math.sin(i / 20) * 5 +
+        Math.sin(i / 50) * 7;
+
+      const value = Math.max(0, base + trend + noise);
+      arr.push(Math.round(value));
+    }
+
+    return arr;
+  }
+
+  const ccuData = generateCCUPattern();
+
+  // ===== Active Server =====
+  const activeServer = 25;
+  const serverData = Array(minuteCount).fill(activeServer);
+
+  // ===== ECharts Option =====
+  const option = {
     tooltip: {
-        trigger: 'axis',
-        backgroundColor: 'rgba(0,0,0,0.75)',
-        textStyle: { color: '#fff' },
-        formatter: params => {
-            let time = params[0].axisValue;
-            let lines = params.map(p => 
-                `<div style="margin:2px 0;">
-                    <span style="display:inline-block;width:10px;height:10px;background:${p.color};border-radius:50%;margin-right:6px;"></span>
-                    ${p.seriesName}: <b>${p.data}</b>
-                </div>`
-            ).join('');
-            return `<b>${time}</b><br>${lines}`;
-        }
+      trigger: "axis",
+      backgroundColor: "rgba(255,255,255,0.95)",
+      textStyle: { color: "#000", fontFamily: "Be Vietnam Pro" },
+      formatter: (params) => {
+        let html = `<strong>${params[0].axisValue}</strong><br/>`;
+        params.forEach((p) => {
+          const marker = `<span style="display:inline-block;margin-right:4px;width:10px;height:10px;border-radius:50%;background:${p.color};"></span>`;
+          html += `${marker}${p.seriesName}: ${p.value}<br/>`;
+        });
+        return html;
+      }
     },
 
     legend: {
-        top: 10,
-        textStyle: { fontSize: 12 }
+      bottom: 0,
+      left: "center",
+      icon: "circle",
+      textStyle: { fontFamily: "Be Vietnam Pro" },
+      data: ["Concurrent Users", "Active Server"]
     },
 
     grid: {
-        left: 65,
-        right: 20,
-        top: 50,
-        bottom: 40
+      top: 30,
+      left: 60,
+      right: 50,
+      bottom: 60
     },
 
     xAxis: {
-        type: 'category',
-        data: minutes,
-        boundaryGap: false,
-        axisLabel: { show: false }
+      type: "category",
+      data: labels,
+      axisLabel: {
+        fontFamily: "Be Vietnam Pro",
+        rotate: 50
+      }
     },
 
     yAxis: [
-        {
-            type: 'value',
-            name: 'Concurrent\nUsers',
-            nameLocation: 'middle',
-            nameGap: 45,
-            nameRotate: 0,   // xoay ngang
-            axisLine: { show: true },
-            axisTick: { show: true },
-            splitLine: { lineStyle: { type: 'dashed' } }
+      {
+        type: "value",
+        name: "User",
+        axisLabel: {
+          formatter: v => v,
+          fontFamily: "Be Vietnam Pro"
         },
-        {
-            type: 'value',
-            name: 'Servers',
-            nameLocation: 'middle',
-            nameGap: 45,
-            nameRotate: 0, // xoay ngang
-            axisLine: { show: true },
-            axisTick: { show: true },
-            splitLine: { show:false }
-        }
+        splitLine: { lineStyle: { type: "dashed" } }
+      },
+      {
+        type: "value",
+        name: "Active Server",
+        min: 0,
+        max: 30,
+        axisLabel: { fontFamily: "Be Vietnam Pro" },
+        splitLine: { show: false }
+      }
     ],
 
     series: [
-        {
-            name: 'CCU 2025-11-14',
-            type: 'line',
-            smooth: true,
-            symbol: 'none',
-            lineStyle: { width: 1.2 },
-            data: ccu_today
-        },
-        {
-            name: 'CCU 2025-11-13',
-            type: 'line',
-            smooth: true,
-            symbol: 'none',
-            lineStyle: { width: 1.2 },
-            data: ccu_compare
-        },
-        {
-            name: 'Active Server',
-            type: 'line',
-            yAxisIndex: 1,
-            smooth: true,
-            symbol: 'none',
-            lineStyle: { width: 1.2, type: 'dashed' },
-            data: active_servers
+      {
+        name: "Concurrent Users",
+        type: "line",
+        data: ccuData,
+        smooth: false,
+        showSymbol: false,
+        lineStyle: { width: 2, color: "#1A73E8" }
+      },
+      {
+        name: "Active Server",
+        type: "line",
+        yAxisIndex: 1,
+        data: serverData,
+        showSymbol: false,
+        lineStyle: {
+          width: 3,
+          color: "#E85D1A"
         }
+      }
     ]
-});
+  };
+
+  const chart = echarts.init(document.getElementById("chart"));
+  chart.setOption(option);
+
+  window.addEventListener("resize", () => chart.resize());
 </script>
+
 </body>
 </html>
