@@ -65,7 +65,13 @@
     Compare: compareData[i]
   }));
 
+  const lastIdx = todayData.length - 1;
+  const lastPoint = [hours[lastIdx], todayData[lastIdx]];
+
   const option = {
+    // Đảm bảo màu sắc được định nghĩa đúng thứ tự:
+    // Màu 1: Xanh Dương (#145dfc) cho Today
+    // Màu 2: Xanh Lá (#03c950) cho Compare Date
     color: ['#145dfc', '#03c950'],
 
     tooltip: {
@@ -79,12 +85,18 @@
         html += `<strong>${params[0].axisValue}</strong><br/>`;
 
         const idx = params[0].dataIndex;
-        const todayVal = source[idx].Today;
-        const compareVal = source[idx].Compare;
+        let todayVal = null;
+        let compareVal = null;
 
         params.forEach(p => {
-          const val = p.value[1] != null ? p.value[1].toLocaleString() : '–';
-          html += `${p.marker} ${p.seriesName}: ${val}<br/>`;
+            // Chỉ hiển thị series line (seriesIndex 0 và 1), bỏ qua effectScatter (seriesIndex 2)
+            if (p.seriesIndex < 2) { 
+                const val = p.value[1] != null ? p.value[1].toLocaleString() : '–';
+                html += `${p.marker} ${p.seriesName}: ${val}<br/>`;
+
+                if (p.seriesIndex === 0) todayVal = p.value[1];
+                if (p.seriesIndex === 1) compareVal = p.value[1];
+            }
         });
 
         // === Thêm logic tăng giảm % tại đây ===
@@ -144,7 +156,7 @@
         smooth: false,
         symbolSize: 6,
         data: source.map(d => [d.Hour, d.Today]),
-        lineStyle: { width: 3, color: '#145dfc' },
+        lineStyle: { width: 3, color: '#145dfc' }, // Cố định màu Xanh Dương
         itemStyle: { color: '#145dfc' },
         label: {
           show: true,
@@ -160,22 +172,10 @@
         type: 'line',
         smooth: false,
         symbol: 'none',
-        lineStyle: { width: 2, color: '#03c950', type: 'dashed' },
+        lineStyle: { width: 2, color: '#03c950', type: 'dashed' }, // Cố định màu Xanh Lá
         data: source.map(d => [d.Hour, d.Compare])
-      }
-    ]
-  };
-
-  const chartDom = document.getElementById('chart');
-  const myChart = echarts.init(chartDom);
-  myChart.setOption(option);
-
-  const lastIdx = todayData.length - 1;
-  const lastPoint = [hours[lastIdx], todayData[lastIdx]];
-
-  myChart.setOption({
-    series: [
-      ...option.series,
+      },
+      // Gộp Effect Scatter vào series thứ 3
       {
         type: 'effectScatter',
         coordinateSystem: 'cartesian2d',
@@ -183,11 +183,15 @@
         symbolSize: 12,
         rippleEffect: { brushType: 'stroke', scale: 4, period: 3 },
         itemStyle: { color: '#145dfc', shadowBlur: 20, shadowColor: '#145dfc' },
-        tooltip: { show: false },
+        tooltip: { show: false }, // Không hiển thị tooltip cho điểm này
         zlevel: 1
       }
     ]
-  });
+  };
+
+  const chartDom = document.getElementById('chart');
+  const myChart = echarts.init(chartDom);
+  myChart.setOption(option);
 
   window.addEventListener('resize', () => myChart.resize());
 </script>
