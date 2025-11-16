@@ -8,6 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 
   <style>
+    /* ... (CSS giữ nguyên) ... */
     body {
       font-family: 'Be Vietnam Pro', sans-serif;
       background: #ffffff;
@@ -23,100 +24,43 @@
     #chart {
       width: 100%;
       height: 100vh;
-      margin-top: 5px; /* Giữ khoảng cách 5px */
+      margin-top: 5px; 
     }
     .metric-selector {
       margin: 20px 0 0 0; 
-      border: 1px solid #ccc; /* Border ngoài cùng màu xám */
+      border: 1px solid #ccc; 
       border-radius: 8px;
       display: flex;
-      overflow: hidden;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      overflow: visible; 
+      position: relative;
+      z-index: 1;
     }
     .metric-button {
-      padding: 6px 14px; /* Giảm padding để metrics trông nhỏ gọn hơn */
+      padding: 6px 14px; 
       font-family: 'Be Vietnam Pro', sans-serif;
-      font-size: 13px; /* Tăng size chữ lên 13px */
+      font-size: 13px; 
       cursor: pointer;
       border: none;
       background: #fff;
-      color: #888888; /* <<< KEY CHANGE: Màu chữ mặc định (chưa chọn) là xám */
+      color: #888888; 
       transition: background 0.2s, color 0.2s, border 0.2s;
       display: flex; 
       justify-content: center; 
       align-items: center;
-      border-radius: 0; /* Đảm bảo không có border-radius riêng lẻ */
+      border-radius: 0; 
       outline: none;
     }
     
-    /* Thiết lập cho nút được chọn (active) */
-    .metric-button.active {
-      background: #e6f0ff; /* Light blue background */
-      color: #145dfc; /* Blue text color */
-      /* Loại bỏ border nếu muốn nút active chỉ dùng background + text color */
-      
-      /* Thêm border xanh theo yêu cầu */
-      border: 1px solid #145dfc; 
-      margin: -1px; /* Dịch chuyển để border không làm thay đổi kích thước selector */
-      border-radius: 8px; /* Bo góc cho nút active */
-      
-      /* Tùy chỉnh để chỉ nút active có bo góc (cần phức tạp hơn nếu muốn border liền mạch) */
-      /* Để đơn giản, ta chỉ set border cho nút active */
-    }
-    
-    /* Cấu hình lại bo góc cho nút active đầu tiên và cuối cùng */
-    .metric-button:first-child.active {
-        border-top-left-radius: 8px;
-        border-bottom-left-radius: 8px;
-    }
-
-    .metric-button:last-child.active {
-        border-top-right-radius: 8px;
-        border-bottom-right-radius: 8px;
-    }
-
-    /* Các nút không active không có border */
-    .metric-button:not(.active) {
-        border: none;
-    }
-
-    /* Đảm bảo nút active không làm hỏng bo góc ngoài của selector */
-    .metric-selector {
-      border: none; /* Bỏ border ngoài để chỉ nút active có border */
-      box-shadow: none; /* Bỏ shadow ngoài */
-    }
-    
-    /* Điều chỉnh lại nút active để trông giống hình ảnh nhất */
     .metric-button.active {
         background: #e6f0ff; 
         color: #145dfc; 
-        /* Thêm border xanh đậm chỉ cho nút active */
         border: 1px solid #145dfc; 
         padding: 6px 14px; 
-        margin: 0;
-        z-index: 10; /* Đảm bảo border nổi lên trên */
-    }
-
-    /* Điều chỉnh lại container để border active bao phủ */
-    .metric-selector {
-        border: 1px solid #ccc; /* Border xám cho container */
+        margin: -1px; 
         border-radius: 8px;
-        overflow: visible; /* Cho phép nút active có border vượt ra ngoài */
-        position: relative;
-        z-index: 1;
+        z-index: 10; 
     }
     
-    /* Cấu hình lại để nút active có border xanh (Gross Booking) */
-    .metric-button.active {
-        background: #e6f0ff; 
-        color: #145dfc; 
-        /* Thiết lập border xanh cho nút active */
-        border: 1px solid #145dfc; 
-        margin: -1px; /* Để border của nút active ăn vào border của selector */
-        border-radius: 8px;
-    }
-    
-    /* Bo góc cho nút active đầu tiên và cuối cùng */
     .metric-button:first-child.active {
         border-top-left-radius: 7px;
         border-bottom-left-radius: 7px;
@@ -125,20 +69,21 @@
         border-top-right-radius: 7px;
         border-bottom-right-radius: 7px;
     }
-    /* Loại bỏ border giữa các nút không active */
-    .metric-button:not(:last-child):not(.active) {
-        /* Thiết lập lại border giữa các nút, nếu cần */
+    .metric-button:not(.active) {
+        border: none;
     }
-    
+    .metric-button:not(:last-child):not(.active) {
+        /* Không cần thiết lập lại border giữa các nút */
+    }
   </style>
 </head>
 
 <body>
   <div class="metric-selector">
-    <button class="metric-button active" data-metric="Ingame Revnue">Gross Booking</button>
+    <button class="metric-button active" data-metric="Ingame Revenue">Gross Booking</button>
     <button class="metric-button" data-metric="PU">PU</button>
     <button class="metric-button" data-metric="NNPU">Succes Trans</button>
-  </div>
+    <button class="metric-button" data-metric="NPU">NPU</button> <button class="metric-button" data-metric="Trans">Trans</button> </div>
   <div id="chart"></div>
 
   <script>
@@ -146,7 +91,7 @@
     const myChart = echarts.init(chartDom);
     const metricButtons = document.querySelectorAll('.metric-button');
 
-    // <<< KEY CHANGE: Mặc định chọn 'Gross Booking'
+    // Cập nhật để đồng bộ với nút đầu tiên ('Gross Booking')
     let activeMetric = 'Ingame Revenue'; 
     let globalSourceData = []; 
 
@@ -162,7 +107,7 @@
           // Cập nhật class active
           metricButtons.forEach(btn => {
               btn.classList.remove('active');
-              // Loại bỏ border ngoài của selector khi chuyển active
+              // Điều chỉnh margin/border cho đúng CSS đã tối ưu
               btn.closest('.metric-selector').style.border = '1px solid #ccc';
               btn.style.margin = '0';
           });
@@ -185,6 +130,14 @@
           break;
         case 'NNPU': 
           todayData = [250, 380, 500, 650, 800, 950, 1100, 1250, 1400, 1550, 1700];
+          break;
+        // ⭐ THÊM LOGIC CHO NPU
+        case 'NPU': 
+          todayData = [50, 75, 120, 180, 250, 320, 400, 450, 510, 580, 650];
+          break;
+        // ⭐ THÊM LOGIC CHO Trans
+        case 'Trans': 
+          todayData = [300, 450, 600, 800, 1050, 1300, 1550, 1800, 2050, 2300, 2550];
           break;
         default:
           todayData = [];
@@ -316,7 +269,7 @@
             name: `Today ${todayStr}`,
             type: 'line',
             smooth: false,
-            symbolSize: symbolSizes, /* Sử dụng mảng symbolSizes đã tùy chỉnh */
+            symbolSize: symbolSizes,
             lineStyle: { width: 3, color: '#145dfc' },
             itemStyle: { color: '#145dfc' },
             data: source.map(d => [d.Hour, d.Today]),
