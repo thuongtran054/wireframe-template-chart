@@ -211,7 +211,7 @@ function renderTable() {
         // Chế độ: DoD hoặc Same Time DoD
         
         let compareValue = (selectedMode === 'dod') ? prevFullDay : prevSameTime;
-        let label = (selectedMode === 'dod') ? ',' : ',';
+        let label = (selectedMode === 'dod') ? '' : '';
         
         if (compareValue === 0 || isNaN(compareValue) || compareValue === undefined) {
              additionalText = ` <span class="negative">${label} N/A</span>`;
