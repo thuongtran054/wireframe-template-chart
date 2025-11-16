@@ -79,7 +79,7 @@
             total += p.value;
           });
           // Thêm Total vào cuối với màu #ed5a27
-          tooltipText += `<b style="color:${colors[2]}">Total: ${total.toLocaleString()}</b>`;
+          tooltipText += `Total Install: ${total.toLocaleString()}</b>`;
           tooltipText += `</div>`;
           return tooltipText;
         }
@@ -111,17 +111,12 @@
 
       xAxis: {
         type: 'value',
-        // Xóa show: false để trục X hiển thị giá trị
+        show: false,
         axisLabel: { 
             formatter: value => value.toLocaleString(),
             fontFamily: 'Be Vietnam Pro',
             fontSize: 11,
             color: '#555'
-        },
-        axisLine: { lineStyle: { color: '#bbb', width: 1.5 } },
-        splitLine: { 
-            show: true, // Hiển thị đường lưới để dễ đọc giá trị
-            lineStyle: { type: 'dashed', color: '#eee' } 
         }
       },
 
