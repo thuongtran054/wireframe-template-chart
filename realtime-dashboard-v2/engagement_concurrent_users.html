@@ -1,20 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Concurrent Users Chart</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
-
+  <title>CCU Minute Chart</title>
   <style>
     body {
-      font-family: 'Be Vietnam Pro', sans-serif;
       margin: 0;
       background: #fff;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      font-family: 'Be Vietnam Pro', sans-serif;
     }
     #chart {
       width: 100%;
@@ -22,48 +17,61 @@
     }
   </style>
 </head>
-
 <body>
 
 <div id="chart"></div>
 
 <script>
-  const hours = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+  const minuteCount = 1440; // 3 hours (đổi thành 1440 nếu muốn full 24h)
+  const start = new Date("2025-11-14 00:00:00");
 
-  // ===========================
-  //  Data mẫu
-  // ===========================
+  // ===== Generate Minutes =====
+  const labels = [];
+  for (let i = 0; i < minuteCount; i++) {
+    const d = new Date(start.getTime() + i * 60000);
+    labels.push(
+      d.toTimeString().slice(0, 5) // HH:mm
+    );
+  }
 
-  // CCU Today — user hay online lúc 10pm
-  const ccuToday = hours.map((h, i) => {
-    if (i < 20) return Math.floor(200 + i * 20);
-    if (i === 22) return 2100;    // peak lúc 22:00
-    return Math.floor(1500 + Math.random() * 200);
-  });
+  // ===== CCU Pattern (giống ảnh) =====
+  function generateCCUPattern() {
+    let arr = [];
+    let base = 18; // start around 18 users
 
-  // CCU Compare — user hay online lúc 9pm
-  const ccuCompare = hours.map((h, i) => {
-    if (i < 19) return Math.floor(150 + i * 25);
-    if (i === 21) return 1900;   // peak lúc 21:00
-    return Math.floor(1300 + Math.random() * 200);
-  });
+    for (let i = 0; i < minuteCount; i++) {
+      // random strong fluctuation (zigzag)
+      const noise = (Math.random() - 0.5) * 6;
 
-  // Active Servers — constant line
-  const serverCount = 6;
-  const activeServers = hours.map(() => serverCount);
+      // gradually trend downward then upward
+      const trend =
+        Math.sin(i / 20) * 5 +
+        Math.sin(i / 50) * 7;
 
+      const value = Math.max(0, base + trend + noise);
+      arr.push(Math.round(value));
+    }
+
+    return arr;
+  }
+
+  const ccuData = generateCCUPattern();
+
+  // ===== Active Server =====
+  const activeServer = 25;
+  const serverData = Array(minuteCount).fill(activeServer);
+
+  // ===== ECharts Option =====
   const option = {
     tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'line' },
-      backgroundColor: 'rgba(255,255,255,0.95)',
-      textStyle: { fontFamily: 'Be Vietnam Pro', color: '#000' },
-      formatter: params => {
+      trigger: "axis",
+      backgroundColor: "rgba(255,255,255,0.95)",
+      textStyle: { color: "#000", fontFamily: "Be Vietnam Pro" },
+      formatter: (params) => {
         let html = `<strong>${params[0].axisValue}</strong><br/>`;
-        params.forEach(p => {
-          const marker =
-            `<span style="display:inline-block;width:10px;height:10px;border-radius:10px;margin-right:4px;background:${p.color}"></span>`;
-          html += `${marker} ${p.seriesName}: ${p.value.toLocaleString()}<br/>`;
+        params.forEach((p) => {
+          const marker = `<span style="display:inline-block;margin-right:4px;width:10px;height:10px;border-radius:50%;background:${p.color};"></span>`;
+          html += `${marker}${p.seriesName}: ${p.value}<br/>`;
         });
         return html;
       }
@@ -73,61 +81,65 @@
       bottom: 0,
       left: "center",
       icon: "circle",
-      textStyle: { fontFamily: 'Be Vietnam Pro' },
-      data: [
-        "CCU Today 2025-11-14",
-        "CCU Compare Date 2025-11-13",
-        "Active Servers Today"
-      ],
+      textStyle: { fontFamily: "Be Vietnam Pro" },
+      data: ["Concurrent Users", "Active Server"]
     },
 
     grid: {
-      top: 40,
+      top: 30,
       left: 60,
-      right: 30,
-      bottom: 60,
+      right: 50,
+      bottom: 60
     },
 
     xAxis: {
-      type: 'category',
-      data: hours,
-      boundaryGap: false,
-      axisLabel: { fontFamily: 'Be Vietnam Pro' }
+      type: "category",
+      data: labels,
+      axisLabel: {
+        fontFamily: "Be Vietnam Pro",
+        rotate: 50
+      }
     },
 
-    yAxis: {
-      type: 'value',
-      axisLabel: {
-        fontFamily: 'Be Vietnam Pro',
-        formatter: v => v.toLocaleString()
+    yAxis: [
+      {
+        type: "value",
+        name: "User",
+        axisLabel: {
+          formatter: v => v,
+          fontFamily: "Be Vietnam Pro"
+        },
+        splitLine: { lineStyle: { type: "dashed" } }
       },
-      splitLine: { lineStyle: { type: 'dashed' } },
-    },
+      {
+        type: "value",
+        name: "Active Server",
+        min: 0,
+        max: 30,
+        axisLabel: { fontFamily: "Be Vietnam Pro" },
+        splitLine: { show: false }
+      }
+    ],
 
     series: [
       {
-        name: "CCU Today 2025-11-14",
+        name: "Concurrent Users",
         type: "line",
-        data: ccuToday,
-        lineStyle: { width: 3, color: "#145dfc" },
-        itemStyle: { color: "#145dfc" },
+        data: ccuData,
+        smooth: false,
         showSymbol: false,
+        lineStyle: { width: 2, color: "#1A73E8" }
       },
       {
-        name: "CCU Compare Date 2025-11-13",
+        name: "Active Server",
         type: "line",
-        data: ccuCompare,
-        lineStyle: { width: 2, color: "#03c950", type: "dashed" },
-        itemStyle: { color: "#03c950" },
+        yAxisIndex: 1,
+        data: serverData,
         showSymbol: false,
-      },
-      {
-        name: "Active Servers Today",
-        type: "line",
-        data: activeServers,
-        lineStyle: { width: 2, color: "#ff9900" },
-        itemStyle: { color: "#ff9900" },
-        symbol: "none",
+        lineStyle: {
+          width: 3,
+          color: "#E85D1A"
+        }
       }
     ]
   };
