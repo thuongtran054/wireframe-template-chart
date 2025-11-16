@@ -58,7 +58,7 @@ option = {
         drop = ` -${percentDrop}%`;
       }
       const percentTotal = ((params.value / firstValue) * 100).toFixed(1);
-      return `${params.name}<br/>Metric: ${params.value.toLocaleString('en-US')} (${percentTotal}%)${drop}`;
+      return `${params.name}<br/>Devices: ${params.value.toLocaleString('en-US')} (${percentTotal}%)${drop}`;
     }
   },
   grid: {
@@ -94,7 +94,7 @@ option = {
             drop = ` -${percentDrop}%`;
           }
           const percentTotal = ((params.value / firstValue) * 100).toFixed(1);
-          return `${params.name}: ${params.value.toLocaleString('en-US')} (${percentTotal}%) \n ${drop}`;
+          return `${params.name} \n ${params.value.toLocaleString('en-US')} (${percentTotal}%)`;
         }
       },
       data: funnelData.map((d, i) => ({
