@@ -69,10 +69,7 @@
   const lastPoint = [hours[lastIdx], todayData[lastIdx]];
 
   const option = {
-    // Đảm bảo màu sắc được định nghĩa đúng thứ tự:
-    // Màu 1: Xanh Dương (#145dfc) cho Today
-    // Màu 2: Xanh Lá (#03c950) cho Compare Date
-    color: ['#145dfc', '#03c950'],
+    color: ['#145dfc', '#03c950'], // Xanh Dương (Today), Xanh Lá (Compare)
 
     tooltip: {
       trigger: 'axis',
@@ -122,7 +119,11 @@
       textStyle: { fontFamily: 'Be Vietnam Pro' },
       data: [
         { name: `Today ${todayStr}` },
-        { name: `Compare Date ${compareStr}` }
+        // Đã sửa: Thêm itemStyle để đặt màu cho legend
+        { 
+          name: `Compare Date ${compareStr}`,
+          itemStyle: { color: '#03c950' } 
+        }
       ]
     },
 
@@ -154,9 +155,10 @@
         name: `Today ${todayStr}`,
         type: 'line',
         smooth: false,
+        showSymbol: false,
         symbolSize: 6,
         data: source.map(d => [d.Hour, d.Today]),
-        lineStyle: { width: 3, color: '#145dfc' }, // Cố định màu Xanh Dương
+        lineStyle: { width: 3, color: '#145dfc' },
         itemStyle: { color: '#145dfc' },
         label: {
           show: true,
@@ -172,10 +174,10 @@
         type: 'line',
         smooth: false,
         symbol: 'none',
-        lineStyle: { width: 2, color: '#03c950', type: 'dashed' }, // Cố định màu Xanh Lá
+        lineStyle: { width: 2, color: '#03c950', type: 'dashed' },
         data: source.map(d => [d.Hour, d.Compare])
       },
-      // Gộp Effect Scatter vào series thứ 3
+      // Effect Scatter
       {
         type: 'effectScatter',
         coordinateSystem: 'cartesian2d',
@@ -183,7 +185,7 @@
         symbolSize: 12,
         rippleEffect: { brushType: 'stroke', scale: 4, period: 3 },
         itemStyle: { color: '#145dfc', shadowBlur: 20, shadowColor: '#145dfc' },
-        tooltip: { show: false }, // Không hiển thị tooltip cho điểm này
+        tooltip: { show: false },
         zlevel: 1
       }
     ]
