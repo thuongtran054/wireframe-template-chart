@@ -26,107 +26,114 @@
 <body>
   <div id="chart"></div>
 
-  <script>
-const colors = ['#145dfc', '#03c950', '#ed5a27', '#9b9b9b', '#f7b500'];
-
-// Chuyển categories thành các giờ trong ngày (00h-23h)
-const categories = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, '0')}h`);
-
-// Dữ liệu iOS và Android chỉ show tới 10h (tức là 10 điểm dữ liệu từ 0h đến 9h)
-const iOSDataRaw = [480, 500, 390, 510, 195, 310, 500, 595, 510, 505];
-const androidDataRaw = [220, 210, 230, 215, 225, 220, 230, 220, 215, 230];
-
-// Tạo dữ liệu đầy đủ 24 giờ, với 0 từ 10h trở đi
-const iOSData = [...iOSDataRaw, ...Array(categories.length - iOSDataRaw.length).fill(0)];
-const androidData = [...androidDataRaw, ...Array(categories.length - androidDataRaw.length).fill(0)];
-
-// Dữ liệu cho đường line "2025-11-13" (giả định cho 24 giờ)
-const hourlyMetricsData = [
-  1150, 940, 930, 970, 980, 990, 940, 980, 960, 970,
-  930, 940, 950, 960, 970, 960, 950, 970, 980, 990,
-  940, 950, 960, 970
-];
-
-// === Chart config ===
-option = {
-  textStyle: {
-    fontFamily: 'Be Vietnam Pro, sans-serif',
-    fontSize: 12,
-    color: '#333'
-  },
-  xAxis: {
-    type: 'category',
-    data: categories
-  },
-  // Một trục Y duy nhất, không có tên trục
-  yAxis: {
-    type: 'value',
-    splitLine: { lineStyle: { type: 'dashed' } },
-    position: 'left',
-    axisLabel: { margin: 12 },
-  },
-  tooltip: {
-    trigger: 'axis',
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    borderWidth: 0,
-    textStyle: { color: '#333' },
-    axisPointer: {
-      type: 'cross',
-      label: { backgroundColor: '#aaa' }
-    },
-    formatter: function (params) {
-      const i = params[0].dataIndex;
-      const hour = categories[i];
-      const total = iOSData[i] + androidData[i];
-      let html = `Report Hour: ${hour}<br/>`;
-      html += `Total Users: ${total.toLocaleString('en-US')}<br/>`;
-      params.forEach(p => {
-        // Ẩn giá trị 0 trong tooltip cho cột iOS/Android sau 10h
-        if ((p.seriesName === 'iOS' || p.seriesName === 'Android') && p.value === 0) {
-          // Không làm gì, bỏ qua
-        } else {
-          html += `<span style="display:inline-block;margin-right:5px;width:10px;height:10px;border-radius:50%;background:${p.color}"></span>
-          ${p.seriesName}: ${p.value.toLocaleString('en-US')}<br/>`;
-        }
-      });
-      return html;
-    }
-  },
-  legend: {
-    bottom: 5,
-    icon: 'circle',
-    data: ['iOS', 'Android', '2025-11-13']
-  },
-  grid: {
-    top: 20,
-    left: 60,
-    right: 60,
-    bottom: 60
-  },
-  series: [
-    { name: 'iOS', type: 'bar', stack: 'total', itemStyle: { color: colors[0] }, data: iOSData },
-    { name: 'Android', type: 'bar', stack: 'total', itemStyle: { color: colors[1] }, data: androidData },
-    {
-      name: '2025-11-13',
-      type: 'line',
-      yAxisIndex: 0,
-      smooth: false,
-      symbol: 'none',
-      symbolSize: 6,
-      lineStyle: { width: 2, color: colors[3] },
-      itemStyle: { color: colors[3] },
-      data: hourlyMetricsData
-    }
-  ]
-};
-    const chartDom = document.getElementById('chart');
-    const myChart = echarts.init(chartDom);
-    myChart.setOption(option);
-
-    window.addEventListener('resize', () => {
-      myChart.resize();
-    });
-
-  </script>
-</body>
-</html>
+<script>
+  const colors = ['#145dfc', '#03c950', '#ed5a27', '#9b9b9b', '#f7b500'];
+  
+  // Chuyển categories thành các giờ trong ngày (00:00 - 23:00)
+  const categories = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, '0')}:00`);
+  
+  // Dữ liệu iOS và Android chỉ show tới 10h (tức là 10 điểm dữ liệu từ 0h đến 9h)
+  const iOSDataRaw = [480, 500, 390, 510, 195, 310, 500, 595, 510, 505];
+  const androidDataRaw = [220, 210, 230, 215, 225, 220, 230, 220, 215, 230];
+  
+  // Tạo dữ liệu đầy đủ 24 giờ, với 0 từ 10h trở đi
+  const iOSData = [...iOSDataRaw, ...Array(categories.length - iOSDataRaw.length).fill(0)];
+  const androidData = [...androidDataRaw, ...Array(categories.length - androidDataRaw.length).fill(0)];
+  
+  // Dữ liệu cho đường line "2025-11-13" (giả định cho 24 giờ)
+  const hourlyMetricsData = [
+    1150, 940, 930, 970, 980, 990, 940, 980, 960, 970,
+    930, 940, 950, 960, 970, 960, 950, 970, 980, 990,
+    940, 950, 960, 970
+  ];
+  
+  // Hàm tìm giá trị theo tên series
+  const findValue = (params, name) => {
+      const series = params.find(p => p.seriesName === name);
+      return series ? series.value.toLocaleString('en-US') : '-';
+  };
+  
+  // === Chart config ===
+  option = {
+    textStyle: {
+      fontFamily: 'Be Vietnam Pro, sans-serif',
+      fontSize: 12,
+      color: '#333'
+    },
+    xAxis: {
+      type: 'category',
+      data: categories
+    },
+    // Một trục Y duy nhất, không có tên trục
+    yAxis: {
+      type: 'value',
+      splitLine: { lineStyle: { type: 'dashed' } },
+      position: 'left',
+      axisLabel: { margin: 12 },
+    },
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(255,255,255,0.95)',
+      borderWidth: 0,
+      textStyle: { color: '#333' },
+      axisPointer: {
+        type: 'cross',
+        label: { backgroundColor: '#aaa' }
+      },
+      // Cập nhật formatter Tooltip
+      formatter: function (params) {
+        const i = params[0].dataIndex;
+        const hour = categories[i];
+        const totalInstall = iOSData[i] + androidData[i];
+        
+        const iOSVal = iOSData[i] > 0 ? iOSData[i].toLocaleString('en-US') : '-';
+        const androidVal = androidData[i] > 0 ? androidData[i].toLocaleString('en-US') : '-';
+        const hourlyMetricVal = findValue(params, '2025-11-13');
+  
+        let html = `<strong>${hour}</strong><br/>`;
+        html += `<span style="display:inline-block;margin-right:5px;width:10px;height:10px;border-radius:50%;background:${colors[0]}"></span> iOS: ${iOSVal}<br/>`;
+        html += `<span style="display:inline-block;margin-right:5px;width:10px;height:10px;border-radius:50%;background:${colors[1]}"></span> Android: ${androidVal}<br/>`;
+        html += `Total Install: ${totalInstall.toLocaleString('en-US')}<br/>`;
+        html += `<span style="display:inline-block;margin-right:5px;width:10px;height:10px;border-radius:50%;background:${colors[3]}"></span> 2025-11-13: ${hourlyMetricVal}<br/>`;
+  
+        return html;
+      }
+    },
+    legend: {
+      bottom: 5,
+      icon: 'circle',
+      data: ['iOS', 'Android', '2025-11-13']
+    },
+    grid: {
+      top: 20,
+      left: 60,
+      right: 60,
+      bottom: 60
+    },
+    series: [
+      { name: 'iOS', type: 'bar', stack: 'total', itemStyle: { color: colors[0] }, data: iOSData },
+      { name: 'Android', type: 'bar', stack: 'total', itemStyle: { color: colors[1] }, data: androidData },
+      {
+        name: '2025-11-13',
+        type: 'line',
+        yAxisIndex: 0,
+        smooth: false,
+        symbol: 'none',
+        symbolSize: 6,
+        lineStyle: { width: 2, color: colors[3] },
+        itemStyle: { color: colors[3] },
+        data: hourlyMetricsData
+      }
+    ]
+  };
+      const chartDom = document.getElementById('chart');
+      const myChart = echarts.init(chartDom);
+      myChart.setOption(option);
+  
+      window.addEventListener('resize', () => {
+        myChart.resize();
+      });
+  
+    </script>
+  </body>
+  </html>
