@@ -81,12 +81,12 @@
         itemHeight: 10,
         textStyle: { fontFamily: "Be Vietnam Pro", fontSize: 12, color: "#333" },
         data: [
-          `ARPU ${today}`,
-          `ARPPU ${today}`,
-          `Paying Rate ${today}`
+          `ARPU`,
+          `ARPPU`,
+          `Paying Rate`
         ]
       },
-      grid: { left: 45, right: 45, top: 30, bottom: 40, containLabel: true },
+      grid: { left: 45, right: 60, top: 30, bottom: 40, containLabel: true },
       xAxis: {
         type: 'category',
         data: categories,
@@ -120,9 +120,9 @@
         }
       ],
       series: [
-        { name: `ARPU ${today}`, type: 'line', yAxisIndex: 0, data: arpuData, smooth: true, connectNulls: true, symbolSize: 6, showSymbol: true, lineStyle: { width: 2, color: colors[0] } },
-        { name: `ARPPU ${today}`, type: 'line', yAxisIndex: 0, data: arppuData, smooth: true, connectNulls: true, symbolSize: 6, showSymbol: true, lineStyle: { width: 2, color: colors[1] } },
-        { name: `Paying Rate ${today}`, type: 'line', yAxisIndex: 1, data: payingRateData, smooth: true, connectNulls: true, symbolSize: 6, showSymbol: true, lineStyle: { width: 2, color: colors[2] } }
+        { name: `ARPU ${today}`, type: 'line', yAxisIndex: 0, data: arpuData, smooth: true, connectNulls: true,        showSymbol: false,        symbolSize: 6, showSymbol: true, lineStyle: { width: 2, color: colors[0] } },
+        { name: `ARPPU ${today}`, type: 'line', yAxisIndex: 0, data: arppuData, smooth: true, connectNulls: true, showSymbol: false,symbolSize: 6, showSymbol: true, lineStyle: { width: 2, color: colors[1] } },
+        { name: `Paying Rate ${today}`, type: 'line', yAxisIndex: 1, data: payingRateData, smooth: true, connectNulls: true, showSymbol: false,symbolSize: 6, showSymbol: true, lineStyle: { width: 2, color: colors[2] } }
       ]
     };
 
