@@ -1,0 +1,185 @@
+realtime-dashboard-v2/acquistition_user_registration_funnel.html<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Platform NRU Metrics Table (All Percent & Sortable)</title>
+<style>
+  body {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    padding: 0px;
+    background: #fff;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0px;
+    font-size: 12px;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: middle;
+  }
+  th {
+    background-color: #f5f5f5;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+  /* Cập nhật style cho header có thể click được và icon */
+  th:not(:first-child) {
+    cursor: pointer;
+  }
+  tr:nth-child(even){background-color: #fafafa;}
+  .positive { color: #03c950; font-weight: 400; }
+  .negative { color: #EA3323; font-weight: 400; }
+</style>
+</head>
+<body>
+
+<table>
+  <thead>
+    <tr>
+      <th>Platform</th>
+      <th data-key="nruRate" data-sort-direction="desc">NRU Rate</th>
+      <th>2025-11-13</th>
+      <th>Last 7D</th>
+    </tr>
+  </thead>
+  <tbody id="table-body"></tbody>
+</table>
+
+<script>
+// Dữ liệu mẫu (Platform, NRU Rate, Today's NRU COUNT, Last 7D Avg NRU COUNT)
+const data = [
+  { platform: 'iOS', nruRate: 0.15, today: 12000, last7D: 10500 },
+  { platform: 'Android', nruRate: 0.22, today: 18500, last7D: 17800 },
+  { platform: 'PC', nruRate: 0.08, today: 4500, last7D: 5200 },
+  { platform: 'Others', nruRate: 0.01, today: 800, last7D: 950 },
+];
+
+const tbody = document.getElementById('table-body');
+const headers = document.querySelectorAll('th');
+
+let sortState = {
+    column: 'nruRate',
+    direction: 'desc'
+};
+
+// --- Sorting Logic ---
+function sortData(column) {
+    let direction = 'asc';
+    if (sortState.column === column) {
+        direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+    }
+    
+    data.sort((a, b) => {
+        const valA = a[column];
+        const valB = b[column];
+        if (direction === 'asc') {
+            return valA - valB;
+        } else {
+            return valB - valA;
+        }
+    });
+    sortState.column = column;
+    sortState.direction = direction;
+    
+    renderTable();
+    updateHeaderIcons();
+}
+
+function updateHeaderIcons() {
+    headers.forEach(header => {
+        let originalText = header.getAttribute('data-original-text');
+        if (!originalText) {
+            originalText = header.innerText.replace(/ \u25B2| \u25BC/g, '').trim();
+            header.setAttribute('data-original-text', originalText);
+        }
+        header.innerHTML = originalText;
+    });
+
+    if (sortState.column) {
+        const keyMap = { 'nruRate': 'NRU Rate' };
+        
+        const sortedHeader = Array.from(headers).find(h => h.getAttribute('data-key') === sortState.column);
+        
+        if (sortedHeader) {
+            const icon = sortState.direction === 'asc' ? ' \u25B2' : ' \u25BC'; 
+            let originalText = sortedHeader.getAttribute('data-original-text');
+            if (!originalText) {
+                 originalText = sortedHeader.innerText;
+                 sortedHeader.setAttribute('data-original-text', originalText);
+            }
+            sortedHeader.innerHTML = originalText + icon;
+        }
+    }
+}
+
+// Gán Event Listeners
+headers.forEach(header => {
+    const dataKey = header.getAttribute('data-key');
+    if (dataKey) {
+        header.addEventListener('click', () => sortData(dataKey));
+        header.setAttribute('data-original-text', header.innerText);
+    }
+});
+
+
+// --- Rendering Logic ---
+function renderTable() {
+  tbody.innerHTML = '';
+  
+  // 1. Tính TỔNG NRU COUNT trong ngày 2025-11-13 và TỔNG NRU COUNT Last 7D
+  const totalNRUToday = data.reduce((sum, d) => sum + d.today, 0);
+  const totalNRULast7D = data.reduce((sum, d) => sum + d.last7D, 0);
+
+  data.forEach(d => {
+    // 2. Cột NRU Rate: Format thành %
+    const nruRateFormatted = (d.nruRate * 100).toFixed(2) + '%';
+    
+    // 3. Cột 2025-11-13: % của platform / Tổng NRU COUNT ngày hôm nay
+    let percentOfTotalToday = '0.0%';
+    if (totalNRUToday > 0) {
+        percentOfTotalToday = (d.today / totalNRUToday * 100).toFixed(1) + '%';
+    }
+    
+    // 4. Cột Last 7D: % của platform / Tổng NRU COUNT Last 7D
+    let percentOfTotalLast7D = '0.0';
+    if (totalNRULast7D > 0) {
+        percentOfTotalLast7D = (d.last7D / totalNRULast7D * 100).toFixed(1);
+    }
+
+    // 5. Tính toán thay đổi (Today's % vs Last 7D's %)
+    let diffText = 'N/A';
+    let diffClass = 'negative';
+    
+    // Chuyển chuỗi % về số thập phân để tính toán
+    const todayP = parseFloat(percentOfTotalToday) / 100;
+    const last7DP = parseFloat(percentOfTotalLast7D) / 100;
+
+    if (last7DP > 0 && !isNaN(todayP) && !isNaN(last7DP)) {
+        const diffPercent = ((todayP - last7DP) / last7DP * 100).toFixed(1);
+        diffClass = todayP >= last7DP ? 'positive' : 'negative';
+        diffText = diffPercent >= 0 ? `+${diffPercent}%` : `${diffPercent}%`;
+    }
+    
+    const tr = document.createElement('tr');
+    
+    tr.innerHTML = `
+      <td>${d.platform}</td>
+      <td>${nruRateFormatted}</td>
+      <td>${percentOfTotalToday}</td>
+      <td>${percentOfTotalLast7D}% <span class="${diffClass}">(${diffText})</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Yêu cầu: sort bởi NRU Rate % giảm dần khi load trang
+sortData(sortState.column);
+updateHeaderIcons();
+</script>
+</body>
+</html>
