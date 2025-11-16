@@ -178,33 +178,6 @@
     myChart.setOption(option);
     
     // === Thêm hiệu ứng ripple cho điểm cuối cùng của Paying Rate (nếu có) ===
-    if (lastValue != null) {
-      myChart.setOption({
-        series: [
-          ...option.series,
-          {
-            type: "effectScatter",
-            coordinateSystem: "cartesian2d",
-            data: [[lastHour, lastValue]],
-            symbolSize: 12,
-            rippleEffect: {
-              brushType: "stroke",
-              scale: 4,
-              period: 3
-            },
-            itemStyle: {
-              color: colors[2],
-              shadowBlur: 25,
-              shadowColor: "rgba(237, 90, 39, 0.6)"
-            },
-            tooltip: { show: false },
-            yAxisIndex: 1,
-            zlevel: 3
-          }
-        ]
-      });
-    }
-
     // Auto resize
     window.addEventListener("resize", () => {
       myChart.resize();
