@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Basic Metric Line Chart Daily</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #chart {
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div id="chart"></div>
+
+  <script>
+var eventNames = [
+  'event_1', 'event_2', 'event_3', 'event_4', 'event_5',
+  'event_6', 'event_7', 'event_8', 'event_9', 'event_10'
+];
+
+var totalEvents = [820, 732, 701, 734, 1090, 1130, 1120, 980, 870, 960];
+var newEvents = [600, 500, 550, 600, 700, 850, 800, 700, 600, 720, ];
+
+// 🧩 Gộp và sort theo newEvents giảm dần
+var data = eventNames.map((name, i) => ({ name, total: totalEvents[i], newE: newEvents[i] }))
+  .sort((b, a) => b.newE - a.newE);
+
+var sortedEventNames = data.map(d => d.name);
+var sortedTotal = data.map(d => d.total);
+var sortedNew = data.map(d => d.newE);
+
+option = {
+  title: { text: '' },
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: { type: 'shadow' },
+    formatter: function (params) {
+      const total = params.find(p => p.seriesName === 'Total Install')?.value || 0;
+      const newE = params.find(p => p.seriesName === 'New Install')?.value || 0;
+      return `
+        ${params[0].name}<br/>
+        Total Install: ${total.toLocaleString()}<br/>
+        New Install: ${newE.toLocaleString()}
+      `;
+    }
+  },
+  legend: {
+    data: ['Total Install', 'New Install'],
+    bottom: 0,
+    icon: 'circle',
+    textStyle: { fontFamily: 'Be Vietnam Pro' }
+  },
+  grid: {
+    left: 150,
+    right: 50,
+    top: 40,
+    bottom: 50
+  },
+  xAxis: {
+    type: 'value',
+    show: false,
+    axisLabel: {
+      fontFamily: 'Be Vietnam Pro',
+      formatter: value => value.toLocaleString()
+    },
+    splitLine: {
+      show: true,
+      lineStyle: { type: 'dashed', color: '#ddd' }
+    }
+  },
+  yAxis: {
+    type: 'category',
+    data: sortedEventNames,
+    axisLabel: {
+      align: 'left',
+      margin: 120,
+      fontFamily: 'Be Vietnam Pro'
+    },
+    axisLine: { show: false },
+    axisTick: { show: false }
+  },
+  series: [
+    {
+      name: 'Total Install',
+      type: 'bar',
+      data: sortedTotal,
+      barWidth: 18,
+      barCategoryGap: '5px', // ✅ khoảng cách 5px giữa các event
+      itemStyle: { color: '#8ab5ff' },
+      label: {
+        show: true,
+        position: 'right',
+        fontFamily: 'Be Vietnam Pro',
+        fontSize: 12,
+        formatter: p => p.value.toLocaleString()
+      },
+      z: 2
+    },
+    {
+      name: 'New Install',
+      type: 'bar',
+      data: sortedNew,
+      barWidth: 12,
+      barCategoryGap: '5px', // ✅ khoảng cách đồng bộ
+      itemStyle: { color: '#145dfc' },
+      barGap: '-80%', // ✅ overlap vào trong
+      label: { show: false },
+      z: 3
+    }
+  ]
+};    const chartDom = document.getElementById('chart');
+    const myChart = echarts.init(chartDom);
+    myChart.setOption(option);
+
+    window.addEventListener('resize', () => {
+      myChart.resize();
+    });
+
+  </script>
+</body>
+</html>
