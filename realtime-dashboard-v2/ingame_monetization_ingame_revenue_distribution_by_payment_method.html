@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Stacked 100% Column Chart Hourly (IAP vs WEB)</title>
+  <title>Stacked 100% Column Chart Hourly (IAP vs WEB) - Optimized</title>
 
   <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 
@@ -37,15 +37,13 @@
     // === Bộ màu ===
     // [0]: WEB (Xanh Dương #145dfc), [1]: IAP (Cam #ed5a27)
     const colors = ['#145dfc', '#ed5a27']; 
-    // Màu cho các thành phần con (Không còn cần thiết cho tooltip, nhưng giữ lại)
-    const subColors = ['#4d80ff', '#53c97e', '#ff7a4d', '#afafaf', '#ffc53d'];
     
-    // === Dữ liệu tuyệt đối gốc (đến 24 giờ) ===
-    const full_dim1 = [480, 500, 390, 510, 195, 310, 500, 595, 510, 505, 510, 520, 505, 500, 510, 515, 520, 590, 600, 810, 500, 510, 515, 500]; // Apple Store
-    const full_dim2 = [220, 210, 230, 215, 225, 220, 230, 220, 215, 230, 225, 220, 230, 225, 220, 215, 220, 230, 225, 220, 225, 230, 220, 215]; // Google Play Store
-    const full_dim3 = [250, 240, 245, 250, 240, 245, 250, 240, 245, 250, 245, 250, 240, 245, 250, 240, 245, 250, 240, 245, 250, 245, 240, 250]; // Credit/ Debit (Web)
-    const full_dim4 = [230, 225, 235, 230, 225, 230, 235, 225, 230, 235, 230, 225, 230, 235, 225, 230, 225, 230, 235, 230, 225, 230, 235, 230]; // QR Code Payment
-    const full_dim5 = [220, 210, 215, 220, 215, 210, 215, 220, 215, 210, 215, 220, 210, 215, 220, 215, 210, 215, 220, 215, 210, 215, 220, 215]; // Others
+    // === DỮ LIỆU TUYỆT ĐỐI GỘP TRỰC TIẾP (24 giờ) ===
+    // (Đây là tổng của (Apple Store + Google Play Store) từ code cũ)
+    const full_iap_abs = [700, 710, 620, 725, 420, 530, 730, 815, 725, 735, 735, 740, 735, 725, 730, 730, 740, 820, 825, 1030, 725, 740, 735, 715];
+
+    // (Đây là tổng của (Credit/ Debit + QR Code + Others) từ code cũ)
+    const full_web_abs = [700, 675, 695, 700, 680, 685, 700, 685, 685, 705, 690, 695, 680, 690, 695, 685, 675, 695, 695, 705, 680, 690, 695, 700];
 
     // Hàm chuẩn bị dữ liệu: cắt đến dataDisplayLimit và đệm bằng null
     function prepareData(fullData) {
@@ -55,30 +53,17 @@
     }
 
     // Cắt dữ liệu tuyệt đối (Absolute data)
-    const dim1 = prepareData(full_dim1); // Apple
-    const dim2 = prepareData(full_dim2); // Google
-    const dim3 = prepareData(full_dim3); // Credit
-    const dim4 = prepareData(full_dim4); // QR
-    const dim5 = prepareData(full_dim5); // Others
+    const iapAbs = prepareData(full_iap_abs); 
+    const webAbs = prepareData(full_web_abs); 
 
-    // === TÍNH TOÁN DỮ LIỆU GỘP ===
+    // === TÍNH TOÁN PHẦN TRĂM VÀ TỔNG CHUNG ===
     
-    // 1. Gộp IAP: Apple Store (dim1) + Google Play Store (dim2)
-    const iapAbs = Array.from({ length: dim1.length }, (_, i) => 
-        (dim1[i] || 0) + (dim2[i] || 0)
-    );
-
-    // 2. Gộp WEB: Credit/Debit (dim3) + QR Code (dim4) + Others (dim5)
-    const webAbs = Array.from({ length: dim1.length }, (_, i) => 
-        (dim3[i] || 0) + (dim4[i] || 0) + (dim5[i] || 0)
-    );
-    
-    // 3. Tính Tổng mới (IAP + WEB)
-    const totalArr = Array.from({ length: dim1.length }, (_, i) =>
+    // 1. Tính Tổng chung hàng giờ (IAP + WEB)
+    const totalArr = Array.from({ length: iapAbs.length }, (_, i) =>
       (iapAbs[i] || 0) + (webAbs[i] || 0)
     );
     
-    // === Hàm chuyển đổi sang Percentage Data (sử dụng tổng mới) ===
+    // 2. Hàm tính Phần trăm
     function toPercentData(absArr) {
       return absArr.map((v, i) => {
           const total = totalArr[i];
@@ -87,11 +72,11 @@
       });
     }
     
-    // Tính Pct data cho IAP và WEB
+    // 3. Tính Pct data cho IAP và WEB
     const iapPct = toPercentData(iapAbs);
     const webPct = toPercentData(webAbs);
 
-    // Đã đổi thứ tự trong mảng này để khớp với màu: [WEB, IAP]
+    // Tên series: [WEB, IAP]
     const dimensionNames = ['WEB', 'IAP']; 
 
     // === Cấu hình biểu đồ ===
@@ -102,9 +87,40 @@
         fontSize: 12,
         color: '#333'
       },
-      // ⭐ THAY ĐỔI: ẨN TOOLTIP HOÀN TOÀN
       tooltip: {
-        show: false
+        trigger: 'axis',
+        axisPointer: { type: 'line' },
+        backgroundColor: 'rgba(255,255,255,0.95)',
+        borderWidth: 0,
+        textStyle: { color: '#000', fontFamily: 'Be Vietnam Pro, sans-serif' },
+        formatter: params => {
+          let text = `<div style="font-family:'Be Vietnam Pro',sans-serif;">`;
+          text += `<strong>${params[0].axisValue}</strong><br/>`;
+          
+          const i = params[0].dataIndex;
+          const currentTotal = totalArr[i];
+
+          if (currentTotal === 0) {
+            return `<strong>${params[0].axisValue}</strong><br/>Không có dữ liệu.`;
+          }
+
+          const webAbsValue = webAbs[i];
+          const iapAbsValue = iapAbs[i];
+          const webTotalPct = (webAbsValue / currentTotal * 100).toFixed(1);
+          const iapTotalPct = (iapAbsValue / currentTotal * 100).toFixed(1);
+
+          // Hiển thị WEB (Xanh Dương)
+          text += `<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:${colors[0]};"></span>`;
+          text += `WEB: ${webAbsValue.toLocaleString()} (${webTotalPct}%)<br/>`;
+
+          // Hiển thị IAP (Cam)
+          text += `<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:${colors[1]};"></span>`;
+          text += `IAP: ${iapAbsValue.toLocaleString()} (${iapTotalPct}%)<br/>`;
+          
+          text += `<hr style="margin: 5px 0; border-color: #eee;">Tổng: ${currentTotal.toLocaleString()}`;
+          text += `</div>`;
+          return text;
+        }
       },
       legend: {
         bottom: 0,
@@ -160,7 +176,7 @@
           name: dimensionNames[0], // 'WEB'
           type: 'bar', 
           stack: 'total', 
-          itemStyle: { color: colors[0] }, // #145dfc (Xanh Dương)
+          itemStyle: { color: colors[0] }, // Xanh Dương
           data: webPct, 
           barGap: '5%', 
           barCategoryGap: '40%' 
@@ -170,10 +186,9 @@
           name: dimensionNames[1], // 'IAP'
           type: 'bar', 
           stack: 'total', 
-          itemStyle: { color: colors[1] }, // #ed5a27 (Cam)
+          itemStyle: { color: colors[1] }, // Cam
           data: iapPct 
         }
-        // Các series con đã bị loại bỏ vì tooltip đã bị ẩn
       ]
     };
 
