@@ -22,46 +22,30 @@
 <div id="chart"></div>
 
 <script>
-  const minuteCount = 180; // 3 hours (đổi thành 1440 nếu muốn full 24h)
+  const minuteCount = 180;
   const start = new Date("2025-11-14 00:00:00");
 
-  // ===== Generate Minutes =====
   const labels = [];
   for (let i = 0; i < minuteCount; i++) {
     const d = new Date(start.getTime() + i * 60000);
-    labels.push(
-      d.toTimeString().slice(0, 5) // HH:mm
-    );
+    labels.push(d.toTimeString().slice(0, 5));
   }
 
-  // ===== CCU Pattern (giống ảnh) =====
   function generateCCUPattern() {
     let arr = [];
-    let base = 18; // start around 18 users
+    let base = 18;
 
     for (let i = 0; i < minuteCount; i++) {
-      // random strong fluctuation (zigzag)
       const noise = (Math.random() - 0.5) * 6;
-
-      // gradually trend downward then upward
-      const trend =
-        Math.sin(i / 20) * 5 +
-        Math.sin(i / 50) * 7;
-
-      const value = Math.max(0, base + trend + noise);
-      arr.push(Math.round(value));
+      const trend = Math.sin(i / 20) * 5 + Math.sin(i / 50) * 7;
+      arr.push(Math.round(Math.max(0, base + trend + noise)));
     }
-
     return arr;
   }
 
   const ccuData = generateCCUPattern();
+  const serverData = Array(minuteCount).fill(25);
 
-  // ===== Active Server =====
-  const activeServer = 25;
-  const serverData = Array(minuteCount).fill(activeServer);
-
-  // ===== ECharts Option =====
   const option = {
     tooltip: {
       trigger: "axis",
@@ -70,7 +54,15 @@
       formatter: (params) => {
         let html = `<strong>${params[0].axisValue}</strong><br/>`;
         params.forEach((p) => {
-          const marker = `<span style="display:inline-block;margin-right:4px;width:10px;height:10px;border-radius:50%;background:${p.color};"></span>`;
+          const marker = `
+            <span style="
+              display:inline-block;
+              margin-right:4px;
+              width:10px;
+              height:10px;
+              border-radius:50%;
+              background:${p.color};
+            "></span>`;
           html += `${marker}${p.seriesName}: ${p.value}<br/>`;
         });
         return html;
@@ -82,33 +74,25 @@
       left: "center",
       icon: "circle",
       textStyle: { fontFamily: "Be Vietnam Pro" },
-      data: ["Concurrent Users", "Active Server"]
+      data: [
+        { name: "Concurrent Users", icon: "circle", itemStyle: { color: "#1A73E8" } },
+        { name: "Active Server", icon: "circle", itemStyle: { color: "#E85D1A" } }
+      ]
     },
 
-    grid: {
-      top: 30,
-      left: 60,
-      right: 50,
-      bottom: 60
-    },
+    grid: { top: 30, left: 60, right: 50, bottom: 60 },
 
     xAxis: {
       type: "category",
       data: labels,
-      axisLabel: {
-        fontFamily: "Be Vietnam Pro",
-        rotate: 50
-      }
+      axisLabel: { fontFamily: "Be Vietnam Pro", rotate: 50 }
     },
 
     yAxis: [
       {
         type: "value",
         name: "User",
-        axisLabel: {
-          formatter: v => v,
-          fontFamily: "Be Vietnam Pro"
-        },
+        axisLabel: { fontFamily: "Be Vietnam Pro" },
         splitLine: { lineStyle: { type: "dashed" } }
       },
       {
@@ -116,7 +100,6 @@
         name: "Active Server",
         min: 0,
         max: 30,
-        axisLabel: { fontFamily: "Be Vietnam Pro" },
         splitLine: { show: false }
       }
     ],
@@ -136,10 +119,7 @@
         yAxisIndex: 1,
         data: serverData,
         showSymbol: false,
-        lineStyle: {
-          width: 3,
-          color: "#E85D1A"
-        }
+        lineStyle: { width: 3, color: "#E85D1A" }
       }
     ]
   };
