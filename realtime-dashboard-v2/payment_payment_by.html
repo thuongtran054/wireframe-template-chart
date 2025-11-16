@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Booking Metrics Table with Toggles and Sorting</title>
+<title>Booking Metrics Table with Single Select Add-on</title>
 <style>
   body {
     font-family: 'Be Vietnam Pro', sans-serif;
@@ -37,21 +37,23 @@
   .toggles {
     margin-bottom: 5px;
     font-size: 12px;
-    padding: 5px 0; /* Thêm padding để dễ nhìn */
+    padding: 5px 0;
     border-bottom: 1px solid #eee;
+  }
+  .additional-metric {
+    font-size: 11px;
+    margin-left: 5px;
   }
 </style>
 </head>
 <body>
 
 <div class="toggles">
-  <label><input type="checkbox" id="showPercent" checked> Show % of Total</label>
-  &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;
+  <label>Additional Metric:</label>
   
-  <label>Compare with:</label>
-  <label><input type="radio" name="comparison" value="none" checked> Current Value</label>
-  <label><input type="radio" name="comparison" value="dod"> DoD (Full Day)</label>
-  <label><input type="radio" name="comparison" value="sametimedod"> Same Time DoD</label>
+  <label><input type="radio" name="displayMode" value="percent" checked> % of Total</label>
+  <label><input type="radio" name="displayMode" value="dod"> DoD (Full Day)</label>
+  <label><input type="radio" name="displayMode" value="sametimedod"> Same Time DoD</label>
 </div>
 
 <table>
@@ -70,7 +72,7 @@
 </table>
 
 <script>
-// Cập nhật dữ liệu: Thêm các metrics cho 'Same Time Previous Day' (stp)
+// Cập nhật dữ liệu
 const data = [
   { dimension: 'package.ws1.royal.web', gross: 120000, prevGross: 100000, stpGross: 95000, success: 110, prevSuccess: 95, stpSuccess: 88, pu: 90, prevPU: 85, stpPU: 82, aov: 1090.9, prevAOV: 1052.6, stpAOV: 1070.0, arppu: 1333.3, prevARPPU: 1176.5, stpARPPU: 1210.0, frequency: 1.2, prevFrequency: 1.1, stpFrequency: 1.15 },
   { dimension: 'package.ws2.silver.web', gross: 90000, prevGross: 95000, stpGross: 80000, success: 85, prevSuccess: 90, stpSuccess: 78, pu: 80, prevPU: 85, stpPU: 75, aov: 1058.8, prevAOV: 1055.6, stpAOV: 1025.6, arppu: 1125.0, prevARPPU: 1117.6, stpARPPU: 1066.7, frequency: 1.1, prevFrequency: 1.0, stpFrequency: 1.05 },
@@ -87,17 +89,15 @@ const data = [
 ];
 
 const tbody = document.getElementById('table-body');
-const showPercent = document.getElementById('showPercent');
 const headers = document.querySelectorAll('th:not(:first-child)'); 
-// UPDATED: Lấy tất cả các radio buttons
-const comparisonRadios = document.querySelectorAll('input[name="comparison"]');
+const displayRadios = document.querySelectorAll('input[name="displayMode"]');
 
 let sortState = {
     column: 'gross',
     direction: 'desc'
 };
 
-// --- Sorting Logic (No change) ---
+// --- Sorting Logic (Không đổi) ---
 function sortData(column) {
     let direction = 'asc';
     if (sortState.column === column) {
@@ -179,58 +179,65 @@ headers.forEach(header => {
 });
 
 
-// --- Rendering Logic (UPDATED) ---
+// --- Rendering Logic ---
 function renderTable() {
   tbody.innerHTML = '';
   const totalGross = data.reduce((sum,d)=>sum+d.gross,0);
   const totalSuccess = data.reduce((sum,d)=>sum+d.success,0);
   const totalPU = data.reduce((sum,d)=>sum+d.pu,0);
 
-  // Lấy giá trị radio button đang được chọn
-  const selectedComparison = document.querySelector('input[name="comparison"]:checked').value;
+  // Lấy giá trị radio button đang được chọn. 
+  const checkedRadio = document.querySelector('input[name="displayMode"]:checked');
+  const selectedMode = checkedRadio ? checkedRadio.value : 'none';
 
 
-    // UPDATED: Hàm format chung
-    function formatAdditional(value, total, prevFullDay, prevSameTime, isPercentTotalEnabled = true, decimalPlaces = 0) {
-      let text = '';
+    // Hàm format chung (luôn trả về giá trị hiện tại + giá trị bổ sung)
+    function formatAdditional(value, total, prevFullDay, prevSameTime, isCountMetric = true, decimalPlaces = 0) {
+      let additionalText = '';
+      // 1. LUÔN LUÔN hiển thị giá trị hiện tại (Current Value)
       let formattedValue = value.toLocaleString(undefined, { minimumFractionDigits: decimalPlaces, maximumFractionDigits: decimalPlaces });
 
-      // 1. Show % of Total
-      if(isPercentTotalEnabled && showPercent.checked) {
+      // 2. Chỉ tính toán giá trị bổ sung nếu selectedMode KHÔNG phải là 'none'
+      if (selectedMode === 'percent' && isCountMetric) {
+        // Chế độ: % of Total (chỉ áp dụng cho Gross, Success, PU)
         if (total > 0) {
-            text += ` (${((value/total)*100).toFixed(1)}%)`;
+            additionalText = `(${((value/total)*100).toFixed(1)}%)`;
+        } else {
+            additionalText = '(0.0%)';
         }
       }
       
-      // 2. Chỉ hiển thị 1 trong 2 loại so sánh (DoD hoặc Same Time DoD)
-      let compareValue = null;
-      let label = '';
-      
-      if(selectedComparison === 'dod') {
-        compareValue = prevFullDay;
-        // label = '[D]';
-      } else if (selectedComparison === 'sametimedod') {
-        compareValue = prevSameTime;
-        // label = '[ST]';
-      }
-
-      if (compareValue !== null) {
-        const safeDiff = (compareValue === 0 || isNaN(compareValue)) ? (value > 0 ? 1000 : 0) : ((value - compareValue) / compareValue * 100);
-        const safeDiffFixed = safeDiff.toFixed(1);
+      else if (selectedMode === 'dod' || selectedMode === 'sametimedod') {
+        // Chế độ: DoD hoặc Same Time DoD
         
-        const cls = safeDiff >= 0 ? 'positive' : 'negative';
+        let compareValue = (selectedMode === 'dod') ? prevFullDay : prevSameTime;
+        // let label = (selectedMode === 'dod') ? '[D]' : '[ST]';
         
-        // Hiển thị kết quả so sánh
-        text += ` <span class="${cls}">${label} ${safeDiff >= 0 ? '+' : ''}${safeDiffFixed}%</span>`;
-      }
+        if (compareValue === 0 || isNaN(compareValue) || compareValue === undefined) {
+             additionalText = ` <span class="negative">${label} N/A</span>`;
+        } else {
+            const safeDiff = ((value - compareValue) / compareValue * 100);
+            const safeDiffFixed = safeDiff.toFixed(1);
+            
+            const cls = safeDiff >= 0 ? 'positive' : 'negative';
+            
+            additionalText = ` <span class="${cls}">${label} ${safeDiff >= 0 ? '+' : ''}${safeDiffFixed}%</span>`;
+        }
+      } 
       
-      return formattedValue + text;
+      // Ghép giá trị hiện tại và giá trị bổ sung
+      if (additionalText) {
+          return `${formattedValue}<span class="additional-metric">${additionalText}</span>`;
+      } else {
+          return formattedValue; // Trả về Current Value nếu không có mode nào được chọn (selectedMode === 'none')
+      }
     }
 
 
   data.forEach(d=>{
     const tr = document.createElement('tr');
     
+    // Đối với Gross, Success, PU là isCountMetric = true (để tính %)
     tr.innerHTML = `
       <td>${d.dimension}</td>
       <td>${formatAdditional(d.gross, totalGross, d.prevGross, d.stpGross, true, 0)}</td>
@@ -246,13 +253,12 @@ function renderTable() {
 }
 
 // Chạy sortData('gross') với hướng mặc định 'desc'
+// Do radio button % of Total đã được checked mặc định, bảng sẽ render với %
 sortData('gross'); 
 updateHeaderIcons();
 
 // Event listeners
-showPercent.addEventListener('change', renderTable);
-// UPDATED: Thêm listeners cho tất cả radio buttons
-comparisonRadios.forEach(radio => {
+displayRadios.forEach(radio => {
     radio.addEventListener('change', renderTable);
 });
 </script>
