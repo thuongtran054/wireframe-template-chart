@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hourly Gross Booking & Success Transaction</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: #ffffff;
+      /* Căn giữa biểu đồ trong body */
+      display: flex; 
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    #chart {
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="chart"></div>
+
+  <script>
+    // === DỮ LIỆU GỐC & Xử lý ===
+    const colors = ['#145dfc', '#03c950', '#ed5a27']; // Màu được dùng: iOS, Android, Total/Others
+    let countries = ['TH', 'PH', 'ID', 'VN'];
+    let androidData = [29034, 104970, 131744, 630230];
+    let iosData = [31000, 121594, 134141, 681807];
+
+    // GỘP DỮ LIỆU & TÍNH TỔNG
+    let combined = countries.map((c, i) => ({
+      country: c,
+      android: androidData[i],
+      ios: iosData[i],
+      total: androidData[i] + iosData[i]
+    }));
+
+    // SORT TĂNG DẦN THEO TỔNG (để cột ngang hiển thị giảm dần từ trên xuống)
+    combined.sort((a, b) => a.total - b.total);
+
+    // DỮ LIỆU SAU SORT
+    const categoryData = combined.map(d => d.country);
+    const iosSeriesData = combined.map(d => d.ios);
+    const androidSeriesData = combined.map(d => d.android);
+
+
+    // === Cấu hình biểu đồ ECharts ===
+    const option = {
+      color: [colors[0], colors[1]], // Chỉ dùng màu iOS và Android cho 2 series
+      
+      textStyle: {
+        fontFamily: 'Be Vietnam Pro',
+        fontSize: 12,
+        color: '#333'
+      },
+
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'shadow' },
+        backgroundColor: 'rgba(255,255,255,0.95)',
+        borderWidth: 0,
+        textStyle: { color: '#000', fontFamily: 'Be Vietnam Pro, sans-serif' },
+        formatter: params => {
+          let total = 0;
+          let tooltipText = `<div style="font-family:'Be Vietnam Pro',sans-serif;">`;
+          tooltipText += `<strong>${params[0].axisValue}</strong><br/>`; // Tên quốc gia
+          params.forEach(p => {
+            const val = p.value != null ? p.value.toLocaleString() : '–';
+            tooltipText += `${p.marker} ${p.seriesName}: ${val}<br/>`;
+            total += p.value;
+          });
+          // Thêm Total vào cuối với màu #ed5a27
+          tooltipText += `<b style="color:${colors[2]}">Total: ${total.toLocaleString()}</b>`;
+          tooltipText += `</div>`;
+          return tooltipText;
+        }
+      },
+
+      legend: { 
+        show: true,
+        orient: 'horizontal',
+        bottom: 0,
+        left: 'center',
+        icon: "circle",
+        itemWidth: 10,
+        itemHeight: 10,
+        textStyle: {
+          fontFamily: 'Be Vietnam Pro',
+          fontSize: 12,
+          color: '#333'
+        },
+        data: ['iOS', 'Android']
+      },
+
+      grid: {
+        top: 30, 
+        bottom: 40,
+        left: 40,
+        right: 40,
+        containLabel: true
+      },
+
+      xAxis: {
+        type: 'value',
+        // Xóa show: false để trục X hiển thị giá trị
+        axisLabel: { 
+            formatter: value => value.toLocaleString(),
+            fontFamily: 'Be Vietnam Pro',
+            fontSize: 11,
+            color: '#555'
+        },
+        axisLine: { lineStyle: { color: '#bbb', width: 1.5 } },
+        splitLine: { 
+            show: true, // Hiển thị đường lưới để dễ đọc giá trị
+            lineStyle: { type: 'dashed', color: '#eee' } 
+        }
+      },
+
+      yAxis: {
+        type: 'category',
+        data: categoryData, // Dữ liệu quốc gia đã sắp xếp
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: {
+          fontFamily: 'Be Vietnam Pro',
+          fontSize: 12,
+          color: '#333'
+        }
+      },
+
+      series: [
+        {
+          name: 'iOS',
+          type: 'bar',
+          data: iosSeriesData,
+          itemStyle: { color: colors[0] }, // #145dfc
+          barWidth: '35%',
+          label: {
+            show: true,
+            position: 'right',
+            fontFamily: 'Be Vietnam Pro',
+            fontSize: 11,
+            color: '#555',
+            formatter: v => v.value.toLocaleString()
+          }
+        },
+        {
+          name: 'Android',
+          type: 'bar',
+          data: androidSeriesData,
+          itemStyle: { color: colors[1] }, // #03c950
+          barWidth: '35%',
+          label: {
+            show: true,
+            position: 'right',
+            fontFamily: 'Be Vietnam Pro',
+            fontSize: 11,
+            color: '#555',
+            formatter: v => v.value.toLocaleString()
+          }
+        }
+      ]
+    };
+
+    // === Khởi tạo & Vẽ chart ===
+    const chartDom = document.getElementById("chart");
+    const myChart = echarts.init(chartDom);
+    myChart.setOption(option);
+
+    // Auto resize
+    window.addEventListener("resize", () => {
+      myChart.resize();
+    });
+  </script>
+</body>
+</html>
