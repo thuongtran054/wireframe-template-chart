@@ -46,7 +46,7 @@
       justify-content: center; 
       align-items: center;
       border-radius: 0; /* Đảm bảo không có border-radius riêng lẻ */
-      outline: none;
+      
     }
     
     /* Thiết lập cho nút được chọn (active) */
@@ -269,7 +269,7 @@
               const sign = percentDiff >= 0 ? '▲' : '▼';
               const color = percentDiff >= 0 ? '#03c950' : '#EA3323'; 
               
-              text += `<span style="color:${color};">${sign}${Math.abs(percentDiff).toFixed(1)}%</span> vs Same Time DoD<br/>`;
+              text += `<span style="color:${color};">${sign}${Math.abs(percentDiff).toFixed(1)}%</span> vs Same Time Compare Date<br/>`;
             }
 
             text += `</div>`;
