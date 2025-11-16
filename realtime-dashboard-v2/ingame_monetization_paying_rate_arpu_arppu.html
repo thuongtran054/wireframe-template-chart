@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hourly ARPU, ARPPU & Paying Rate</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: #ffffff;
+    }
+    #chart {
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="chart"></div>
+
+  <script>
+    // === Khởi tạo chart ===
+    const chartDom = document.getElementById("chart");
+    const myChart = echarts.init(chartDom);
+
+    // === Giờ trong ngày ===
+    const categories = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+    const dataDisplayLimit = 10; // Giả lập dữ liệu chỉ có đến 10:00
+
+    // === Dữ liệu mẫu (Data Samples) ===
+    
+    // ARPU (Trục Y trái 1)
+    const arpuData = Array.from({ length: 24 }, (_, i) => 
+      i <= dataDisplayLimit ? parseFloat((Math.random() * 0.5 + 1.2).toFixed(2)) : null
+    );
+
+    // ARPPU (Trục Y trái 2) - Luôn lớn hơn ARPU
+    const arppuData = Array.from({ length: 24 }, (_, i) => 
+      i <= dataDisplayLimit ? parseFloat((Math.random() * 1.5 + 5.5).toFixed(2)) : null
+    );
+
+    // Paying Rate (Trục Y phải) - Giá trị phần trăm
+    const payingRateData = Array.from({ length: 24 }, (_, i) => 
+      i <= dataDisplayLimit ? parseFloat((Math.random() * 0.05 + 1.5).toFixed(2)) : null
+    );
+
+    // === Bộ màu ===
+    // ARPU (Xanh dương), ARPPU (Xanh lá), Paying Rate (Cam)
+    const colors = ['#145dfc', '#03c950', '#ed5a27'];
+
+    // === Ngày động ===
+    const today = '2025-10-25';
+    
+    // === Cấu hình biểu đồ ===
+    const option = {
+      color: colors,
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'line' },
+        backgroundColor: 'rgba(255,255,255,0.95)',
+        borderWidth: 0,
+        textStyle: { color: '#000', fontFamily: 'Be Vietnam Pro, sans-serif' },
+        formatter: params => {
+          let text = `<div style="font-family:'Be Vietnam Pro',sans-serif;">`;
+          text += `<strong>${params[0].axisValue}</strong><br/>`;
+          params.forEach(p => {
+            const val = p.value != null ? p.value.toLocaleString() : '–';
+            const unit = p.seriesName.includes('Rate') ? '%' : '';
+            const seriesColor = p.color;
+            
+            // Highlight màu cho Paying Rate
+            const valDisplay = p.seriesName.includes('Rate') 
+                ? `<span style="color:${seriesColor}; font-weight: bold;">${val}${unit}</span>`
+                : `${val}${unit}`;
+                
+            text += `${p.marker} ${p.seriesName}: ${valDisplay}<br/>`;
+          });
+          text += `</div>`;
+          return text;
+        }
+      },
+      legend: {
+        bottom: 0,
+        left: "center",
+        icon: "circle",
+        itemWidth: 10,
+        itemHeight: 10,
+        textStyle: {
+          fontFamily: "Be Vietnam Pro",
+          fontSize: 12,
+          color: "#333"
+        },
+        data: [
+          { name: `ARPU ${today}`, icon: 'circle' },
+          { name: `ARPPU ${today}`, icon: 'circle' },
+          { name: `Paying Rate ${today}`, icon: 'circle' }
+        ]
+      },
+      grid: {
+        left: 45, right: 45, top: 30, bottom: 40, containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: categories,
+        axisLine: { lineStyle: { color: '#bbb', width: 1.5 } },
+        axisLabel: {
+          fontFamily: 'Be Vietnam Pro',
+          fontSize: 11,
+          color: '#555'
+        }
+      },
+      yAxis: [
+        // Trục Y 0 (Left - ARPU, ARPPU)
+        {
+          type: 'value',
+          name: 'ARPU / ARPPU',
+          position: 'left',
+          nameLocation: 'center',
+          nameGap: 30,
+          nameTextStyle: {
+            fontFamily: 'Be Vietnam Pro',
+            fontSize: 11,
+            color: '#333'
+          },
+          splitLine: {
+            lineStyle: { type: 'dashed', color: '#eee' }
+          },
+          axisLabel: {
+            fontFamily: 'Be Vietnam Pro',
+            fontSize: 11,
+            color: '#555',
+            formatter: value => value.toLocaleString() 
+          }
+        },
+        // Trục Y 1 (Right - Paying Rate)
+        {
+          type: 'value',
+          name: 'Paying Rate (%)',
+          position: 'right',
+          nameLocation: 'center',
+          nameGap: 30,
+          nameTextStyle: {
+            fontFamily: 'Be Vietnam Pro',
+            fontSize: 11,
+            color: colors[2] // Cam
+          },
+          min: 0,
+          max: function (value) {
+            // Đảm bảo trục Rate luôn lớn hơn hoặc bằng giá trị Max Rate * 1.2
+            return Math.ceil(value.max * 1.2 * 10) / 10; 
+          },
+          splitLine: { show: false },
+          axisLabel: {
+            fontFamily: 'Be Vietnam Pro',
+            fontSize: 11,
+            color: colors[2], // Cam
+            formatter: '{value}%' 
+          }
+        }
+      ],
+      series: [
+        // Series 1: ARPU (Trục trái) - Màu Xanh dương
+        {
+          name: `ARPU ${today}`,
+          type: 'line',
+          yAxisIndex: 0,
+          data: arpuData,
+          smooth: true,
+          symbolSize: 6,
+          showSymbol: true,
+          lineStyle: { width: 2, color: colors[0] }
+        },
+        // Series 2: ARPPU (Trục trái) - Màu Xanh lá
+        {
+          name: `ARPPU ${today}`,
+          type: 'line',
+          yAxisIndex: 0,
+          data: arppuData,
+          smooth: true,
+          symbolSize: 6,
+          showSymbol: true,
+          lineStyle: { width: 2, color: colors[1] }
+        },
+        // Series 3: Paying Rate (Trục phải) - Màu Cam
+        {
+          name: `Paying Rate ${today}`,
+          type: 'line',
+          yAxisIndex: 1,
+          data: payingRateData,
+          smooth: true,
+          symbolSize: 6,
+          showSymbol: true,
+          lineStyle: { width: 2, color: colors[2] }
+        }
+      ]
+    };
+
+    // === Hiệu ứng ripple cho điểm cuối cùng của Paying Rate ===
+    const lastIdx = payingRateData.findLastIndex(v => v != null);
+    const lastHour = categories[lastIdx];
+    const lastValue = payingRateData[lastIdx];
+    
+    // Nếu có dữ liệu mới nhất
+    if (lastValue != null) {
+      myChart.setOption({
+        series: [
+          ...option.series,
+          {
+            type: "effectScatter",
+            coordinateSystem: "cartesian2d",
+            data: [[lastHour, lastValue]],
+            symbolSize: 12,
+            rippleEffect: {
+              brushType: "stroke",
+              scale: 4,
+              period: 3
+            },
+            itemStyle: {
+              color: colors[2],
+              shadowBlur: 25,
+              shadowColor: "rgba(237, 90, 39, 0.6)"
+            },
+            tooltip: { show: false },
+            yAxisIndex: 1,
+            zlevel: 3
+          }
+        ]
+      });
+    }
+
+    // === Vẽ chart ===
+    myChart.setOption(option);
+
+    // Auto resize
+    window.addEventListener("resize", () => {
+      myChart.resize();
+    });
+  </script>
+</body>
+</html>
