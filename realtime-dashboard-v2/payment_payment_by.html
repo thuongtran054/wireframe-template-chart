@@ -45,7 +45,9 @@
 <div class="toggles">
   <label><input type="checkbox" id="showPercent" checked> Show % of Total</label>
   &nbsp;&nbsp;
-  <label><input type="checkbox" id="showDoD"> Show DoD</label>
+  <label><input type="checkbox" id="showDoD"> Show DoD (Full Day)</label>
+  &nbsp;&nbsp;
+  <label><input type="checkbox" id="showSameTimeDoD"> Show Same Time DoD</label> 
 </div>
 
 <table>
@@ -64,45 +66,42 @@
 </table>
 
 <script>
-// Cập nhật dữ liệu với 3 metrics mới (AOV, ARPPU, Frequency)
+// Cập nhật dữ liệu: Thêm các metrics cho 'Same Time Previous Day' (stp)
 const data = [
-  { dimension: 'package.ws1.royal.web', gross: 120000, prevGross: 100000, success: 110, prevSuccess: 95, pu: 90, prevPU: 85, aov: 1090.9, prevAOV: 1052.6, arppu: 1333.3, prevARPPU: 1176.5, frequency: 1.2, prevFrequency: 1.1 },
-  { dimension: 'package.ws2.silver.web', gross: 90000, prevGross: 95000, success: 85, prevSuccess: 90, pu: 80, prevPU: 85, aov: 1058.8, prevAOV: 1055.6, arppu: 1125.0, prevARPPU: 1117.6, frequency: 1.1, prevFrequency: 1.0 },
-  { dimension: 'package.ws3.gold.web', gross: 150000, prevGross: 130000, success: 140, prevSuccess: 120, pu: 130, prevPU: 110, aov: 1071.4, prevAOV: 1083.3, arppu: 1153.8, prevARPPU: 1181.8, frequency: 1.0, prevFrequency: 1.0 },
-  { dimension: 'package.ws4.platinum.web', gross: 70000, prevGross: 70000, success: 65, prevSuccess: 65, pu: 60, prevPU: 60, aov: 1076.9, prevAOV: 1076.9, arppu: 1166.7, prevARPPU: 1166.7, frequency: 1.3, prevFrequency: 1.2 },
-  { dimension: 'package.ws5.basic.web', gross: 50000, prevGross: 45000, success: 45, prevSuccess: 42, pu: 40, prevPU: 38, aov: 1111.1, prevAOV: 1071.4, arppu: 1250.0, prevARPPU: 1184.2, frequency: 1.5, prevFrequency: 1.4 },
-  { dimension: 'package.ws6.standard.web', gross: 60000, prevGross: 55000, success: 55, prevSuccess: 50, pu: 50, prevPU: 48, aov: 1090.9, prevAOV: 1100.0, arppu: 1200.0, prevARPPU: 1145.8, frequency: 1.1, prevFrequency: 1.1 },
-  { dimension: 'package.ws7.premium.web', gross: 80000, prevGross: 75000, success: 75, prevSuccess: 70, pu: 70, prevPU: 65, aov: 1066.7, prevAOV: 1071.4, arppu: 1142.9, prevARPPU: 1153.8, frequency: 1.0, prevFrequency: 1.0 },
-  { dimension: 'package.ws8.premium.web', gross: 80000, prevGross: 75000, success: 75, prevSuccess: 70, pu: 70, prevPU: 65, aov: 1066.7, prevAOV: 1071.4, arppu: 1142.9, prevARPPU: 1153.8, frequency: 1.0, prevFrequency: 1.0 },
-  { dimension: 'package.ws9.premium.web', gross: 80000, prevGross: 75000, success: 75, prevSuccess: 70, pu: 70, prevPU: 65, aov: 1066.7, prevAOV: 1071.4, arppu: 1142.9, prevARPPU: 1153.8, frequency: 1.0, prevFrequency: 1.0 },
-  { dimension: 'package.ws10.premium.web', gross: 80000, prevGross: 75000, success: 75, prevSuccess: 70, pu: 70, prevPU: 65, aov: 1066.7, prevAOV: 1071.4, arppu: 1142.9, prevARPPU: 1153.8, frequency: 1.0, prevFrequency: 1.0 },
-  { dimension: 'package.ws11.premium.web', gross: 80000, prevGross: 75000, success: 75, prevSuccess: 70, pu: 70, prevPU: 65, aov: 1066.7, prevAOV: 1071.4, arppu: 1142.9, prevARPPU: 1153.8, frequency: 1.0, prevFrequency: 1.0 },
-  { dimension: 'package.ws12.premium.web', gross: 80000, prevGross: 75000, success: 75, prevSuccess: 70, pu: 70, prevPU: 65, aov: 1066.7, prevAOV: 1071.4, arppu: 1142.9, prevARPPU: 1153.8, frequency: 1.0, prevFrequency: 1.0 },
-
+  // Thêm stpGross, stpSuccess, stpPU, stpAOV, stpARPPU, stpFrequency
+  { dimension: 'package.ws1.royal.web', gross: 120000, prevGross: 100000, stpGross: 95000, success: 110, prevSuccess: 95, stpSuccess: 88, pu: 90, prevPU: 85, stpPU: 82, aov: 1090.9, prevAOV: 1052.6, stpAOV: 1070.0, arppu: 1333.3, prevARPPU: 1176.5, stpARPPU: 1210.0, frequency: 1.2, prevFrequency: 1.1, stpFrequency: 1.15 },
+  { dimension: 'package.ws2.silver.web', gross: 90000, prevGross: 95000, stpGross: 80000, success: 85, prevSuccess: 90, stpSuccess: 78, pu: 80, prevPU: 85, stpPU: 75, aov: 1058.8, prevAOV: 1055.6, stpAOV: 1025.6, arppu: 1125.0, prevARPPU: 1117.6, stpARPPU: 1066.7, frequency: 1.1, prevFrequency: 1.0, stpFrequency: 1.05 },
+  { dimension: 'package.ws3.gold.web', gross: 150000, prevGross: 130000, stpGross: 140000, success: 140, prevSuccess: 120, stpSuccess: 135, pu: 130, prevPU: 110, stpPU: 125, aov: 1071.4, prevAOV: 1083.3, stpAOV: 1037.0, arppu: 1153.8, prevARPPU: 1181.8, stpARPPU: 1120.0, frequency: 1.0, prevFrequency: 1.0, stpFrequency: 1.0 },
+  { dimension: 'package.ws4.platinum.web', gross: 70000, prevGross: 70000, stpGross: 65000, success: 65, prevSuccess: 65, stpSuccess: 60, pu: 60, prevPU: 60, stpPU: 55, aov: 1076.9, prevAOV: 1076.9, stpAOV: 1083.3, arppu: 1166.7, prevARPPU: 1166.7, stpARPPU: 1181.8, frequency: 1.3, prevFrequency: 1.2, stpFrequency: 1.25 },
+  { dimension: 'package.ws5.basic.web', gross: 50000, prevGross: 45000, stpGross: 48000, success: 45, prevSuccess: 42, stpSuccess: 43, pu: 40, prevPU: 38, stpPU: 39, aov: 1111.1, prevAOV: 1071.4, stpAOV: 1100.0, arppu: 1250.0, prevARPPU: 1184.2, stpARPPU: 1230.8, frequency: 1.5, prevFrequency: 1.4, stpFrequency: 1.45 },
+  { dimension: 'package.ws6.standard.web', gross: 60000, prevGross: 55000, stpGross: 58000, success: 55, prevSuccess: 50, stpSuccess: 53, pu: 50, prevPU: 48, stpPU: 49, aov: 1090.9, prevAOV: 1100.0, stpAOV: 1094.3, arppu: 1200.0, prevARPPU: 1145.8, stpARPPU: 1183.7, frequency: 1.1, prevFrequency: 1.1, stpFrequency: 1.1 },
+  { dimension: 'package.ws7.premium.web', gross: 80000, prevGross: 75000, stpGross: 78000, success: 75, prevSuccess: 70, stpSuccess: 73, pu: 70, prevPU: 65, stpPU: 68, aov: 1066.7, prevAOV: 1071.4, stpAOV: 1068.5, arppu: 1142.9, prevARPPU: 1153.8, stpARPPU: 1147.1, frequency: 1.0, prevFrequency: 1.0, stpFrequency: 1.0 },
+  { dimension: 'package.ws8.premium.web', gross: 80000, prevGross: 75000, stpGross: 78000, success: 75, prevSuccess: 70, stpSuccess: 73, pu: 70, prevPU: 65, stpPU: 68, aov: 1066.7, prevAOV: 1071.4, stpAOV: 1068.5, arppu: 1142.9, prevARPPU: 1153.8, stpARPPU: 1147.1, frequency: 1.0, prevFrequency: 1.0, stpFrequency: 1.0 },
+  { dimension: 'package.ws9.premium.web', gross: 80000, prevGross: 75000, stpGross: 78000, success: 75, prevSuccess: 70, stpSuccess: 73, pu: 70, prevPU: 65, stpPU: 68, aov: 1066.7, prevAOV: 1071.4, stpAOV: 1068.5, arppu: 1142.9, prevARPPU: 1153.8, stpARPPU: 1147.1, frequency: 1.0, prevFrequency: 1.0, stpFrequency: 1.0 },
+  { dimension: 'package.ws10.premium.web', gross: 80000, prevGross: 75000, stpGross: 78000, success: 75, prevSuccess: 70, stpSuccess: 73, pu: 70, prevPU: 65, stpPU: 68, aov: 1066.7, prevAOV: 1071.4, stpAOV: 1068.5, arppu: 1142.9, prevARPPU: 1153.8, stpARPPU: 1147.1, frequency: 1.0, prevFrequency: 1.0, stpFrequency: 1.0 },
+  { dimension: 'package.ws11.premium.web', gross: 80000, prevGross: 75000, stpGross: 78000, success: 75, prevSuccess: 70, stpSuccess: 73, pu: 70, prevPU: 65, stpPU: 68, aov: 1066.7, prevAOV: 1071.4, stpAOV: 1068.5, arppu: 1142.9, prevARPPU: 1153.8, stpARPPU: 1147.1, frequency: 1.0, prevFrequency: 1.0, stpFrequency: 1.0 },
+  { dimension: 'package.ws12.premium.web', gross: 80000, prevGross: 75000, stpGross: 78000, success: 75, prevSuccess: 70, stpSuccess: 73, pu: 70, prevPU: 65, stpPU: 68, aov: 1066.7, prevAOV: 1071.4, stpAOV: 1068.5, arppu: 1142.9, prevARPPU: 1153.8, stpARPPU: 1147.1, frequency: 1.0, prevFrequency: 1.0, stpFrequency: 1.0 },
 ];
 
 const tbody = document.getElementById('table-body');
 const showPercent = document.getElementById('showPercent');
 const showDoD = document.getElementById('showDoD');
-// Cập nhật: Chọn tất cả các header trừ cột Dimension đầu tiên
+// NEW: Get the Same Time DoD checkbox
+const showSameTimeDoD = document.getElementById('showSameTimeDoD'); 
 const headers = document.querySelectorAll('th:not(:first-child)'); 
 
-// THAY ĐỔI: Thiết lập trạng thái mặc định: sort theo 'gross' giảm dần ('desc')
 let sortState = {
     column: 'gross',
-    direction: 'asc' 
+    direction: 'desc' // Đổi lại mặc định là 'desc' cho Gross Booking
 };
 
-// --- Sorting Logic ---
+// --- Sorting Logic (No change needed) ---
 function sortData(column) {
-    // Determine new direction
     let direction = 'asc';
     if (sortState.column === column) {
-        // Toggle direction if clicking the same column
         direction = sortState.direction === 'asc' ? 'desc' : 'asc';
     }
     
-    // Perform the sort
     data.sort((a, b) => {
         const valA = a[column];
         const valB = b[column];
@@ -114,19 +113,15 @@ function sortData(column) {
         }
     });
 
-    // Update sort state
     sortState.column = column;
     sortState.direction = direction;
     
-    // Re-render
     renderTable();
     updateHeaderIcons();
 }
 
 function updateHeaderIcons() {
-    // Clear all existing icons
     headers.forEach(header => {
-        // Lưu trữ nội dung ban đầu (không có icon)
         let originalText = header.getAttribute('data-original-text');
         if (!originalText) {
             originalText = header.innerText.replace(/ \u25B2| \u25BC/g, '').trim();
@@ -136,7 +131,6 @@ function updateHeaderIcons() {
     });
 
     if (sortState.column) {
-        // Mapping các key mới
         const keyMap = {
             'gross': 'Gross Booking',
             'success': 'Success Trans',
@@ -151,15 +145,14 @@ function updateHeaderIcons() {
         const sortedHeader = Array.from(headers).find(h => h.getAttribute('data-original-text') === targetHeaderText);
 
         if (sortedHeader) {
-            const icon = sortState.direction === 'asc' ? ' \u25B2' : ' \u25BC'; // Up arrow or Down arrow
+            const icon = sortState.direction === 'asc' ? ' \u25B2' : ' \u25BC'; 
             sortedHeader.innerHTML += icon;
         }
     }
 }
 
-// Add click listeners to headers
+// Add click listeners to headers (No change needed)
 headers.forEach(header => {
-    // Lấy data key dựa trên nội dung header
     let dataKey;
     const text = header.innerText.toLowerCase();
     
@@ -177,7 +170,6 @@ headers.forEach(header => {
         dataKey = 'frequency';
     }
 
-    // Lưu trữ text ban đầu để dễ dàng khôi phục khi cập nhật icon
     header.setAttribute('data-original-text', header.innerText);
 
     if (dataKey) {
@@ -186,62 +178,77 @@ headers.forEach(header => {
 });
 
 
-// --- Rendering Logic ---
+// --- Rendering Logic (UPDATED) ---
 function renderTable() {
   tbody.innerHTML = '';
-  // Tính tổng cho các cột cần tính % (chỉ Gross, Success, PU)
   const totalGross = data.reduce((sum,d)=>sum+d.gross,0);
   const totalSuccess = data.reduce((sum,d)=>sum+d.success,0);
   const totalPU = data.reduce((sum,d)=>sum+d.pu,0);
 
-
-  data.forEach(d=>{
-    const tr = document.createElement('tr');
-
-    // Hàm format chung cho các chỉ số
-    function formatAdditional(value, total, prev, isPercentTotalEnabled = true, decimalPlaces = 0) {
+    // UPDATED: Hàm format chung
+    function formatAdditional(value, total, prevFullDay, prevSameTime, isPercentTotalEnabled = true, decimalPlaces = 0) {
       let text = '';
       let formattedValue = value.toLocaleString(undefined, { minimumFractionDigits: decimalPlaces, maximumFractionDigits: decimalPlaces });
 
+      // 1. Show % of Total
       if(isPercentTotalEnabled && showPercent.checked) {
-        // Chỉ hiển thị % of Total cho Gross, Success, PU
         if (total > 0) {
             text += ` (${((value/total)*100).toFixed(1)}%)`;
         }
       }
       
+      // 2. Show DoD (Full Day)
       if(showDoD.checked) {
-        const safeDiff = (prev === 0 || isNaN(prev)) ? (value > 0 ? 1000 : 0) : ((value - prev) / prev * 100);
+        // Sử dụng prevFullDay
+        const safeDiff = (prevFullDay === 0 || isNaN(prevFullDay)) ? (value > 0 ? 1000 : 0) : ((value - prevFullDay) / prevFullDay * 100);
         const safeDiffFixed = safeDiff.toFixed(1);
         
         const cls = safeDiff >= 0 ? 'positive' : 'negative';
         
-        text += ` <span class="${cls}">${safeDiff >= 0 ? '+' : ''}${safeDiffFixed}%</span>`;
+        text += ` <span class="${cls}">[D] ${safeDiff >= 0 ? '+' : ''}${safeDiffFixed}%</span>`;
       }
+
+      // 3. NEW: Show Same Time DoD
+      if(showSameTimeDoD.checked) {
+        // Sử dụng prevSameTime
+        const safeDiffSTP = (prevSameTime === 0 || isNaN(prevSameTime)) ? (value > 0 ? 1000 : 0) : ((value - prevSameTime) / prevSameTime * 100);
+        const safeDiffSTPFixed = safeDiffSTP.toFixed(1);
+        
+        const clsSTP = safeDiffSTP >= 0 ? 'positive' : 'negative';
+        
+        text += ` <span class="${clsSTP}">[ST] ${safeDiffSTP >= 0 ? '+' : ''}${safeDiffSTPFixed}%</span>`;
+      }
+      
       return formattedValue + text;
     }
 
+
+  data.forEach(d=>{
+    const tr = document.createElement('tr');
+    
     tr.innerHTML = `
       <td>${d.dimension}</td>
-      <td>${formatAdditional(d.gross, totalGross, d.prevGross, true, 0)}</td>
-      <td>${formatAdditional(d.success, totalSuccess, d.prevSuccess, true, 0)}</td>
-      <td>${formatAdditional(d.pu, totalPU, d.prevPU, true, 0)}</td>
-      <td>${formatAdditional(d.aov, 0, d.prevAOV, false, 1)}</td>
-      <td>${formatAdditional(d.arppu, 0, d.prevARPPU, false, 1)}</td>
-      <td>${formatAdditional(d.frequency, 0, d.prevFrequency, false, 1)}</td>
+      <td>${formatAdditional(d.gross, totalGross, d.prevGross, d.stpGross, true, 0)}</td>
+      <td>${formatAdditional(d.success, totalSuccess, d.prevSuccess, d.stpSuccess, true, 0)}</td>
+      <td>${formatAdditional(d.pu, totalPU, d.prevPU, d.stpPU, true, 0)}</td>
+      <td>${formatAdditional(d.aov, 0, d.prevAOV, d.stpAOV, false, 1)}</td>
+      <td>${formatAdditional(d.arppu, 0, d.prevARPPU, d.stpARPPU, false, 1)}</td>
+      <td>${formatAdditional(d.frequency, 0, d.prevFrequency, d.stpFrequency, false, 1)}</td>
     `;
 
     tbody.appendChild(tr);
   });
 }
 
-// THAY ĐỔI: Chạy sortData('gross') với hướng mặc định 'desc'
+// Chạy sortData('gross') với hướng mặc định 'desc'
 sortData('gross'); 
-updateHeaderIcons(); // Cập nhật icon sort
+updateHeaderIcons();
 
 // Event listeners
 showPercent.addEventListener('change', renderTable);
 showDoD.addEventListener('change', renderTable);
+// NEW: Add listener for Same Time DoD
+showSameTimeDoD.addEventListener('change', renderTable); 
 </script>
 
 </body>
