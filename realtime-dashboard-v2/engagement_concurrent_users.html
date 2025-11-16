@@ -50,7 +50,7 @@
     tooltip: {
       trigger: "axis",
       backgroundColor: "rgba(255,255,255,0.95)",
-      textStyle: { color: "#000", fontFamily: "Be Vietnam Pro" },
+      textStyle: {  fontFamily: "Be Vietnam Pro" },
       formatter: (params) => {
         let html = `<strong>${params[0].axisValue}</strong><br/>`;
         params.forEach((p) => {
@@ -92,15 +92,23 @@
       {
         type: "value",
         name: "User",
-        axisLabel: { fontFamily: "Be Vietnam Pro" },
-        splitLine: { lineStyle: { type: "dashed" } }
+        splitLine: { lineStyle: { type: "dashed" } },
+        position: 'left',
+        nameLocation: 'center',
+        nameGap: 45,
+        axisLabel: {margin: 12, fontFamily: "Be Vietnam Pro"}
       },
       {
         type: "value",
         name: "Active Server",
         min: 0,
         max: 30,
-        splitLine: { show: false }
+        splitLine: { show: false },
+        position: 'right',
+        nameLocation: 'center',
+        nameGap: 45,
+        axisLabel: {margin: 12, fontFamily: "Be Vietnam Pro"}
+        
       }
     ],
 
