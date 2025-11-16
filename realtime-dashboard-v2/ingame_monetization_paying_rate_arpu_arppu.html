@@ -25,39 +25,30 @@
   <div id="chart"></div>
 
   <script>
-    // === Khởi tạo chart ===
     const chartDom = document.getElementById("chart");
     const myChart = echarts.init(chartDom);
 
-    // === Giờ trong ngày ===
     const categories = Array.from({ length: 24 }, (_, i) => `${i}:00`);
-    const dataDisplayLimit = 10; // Giả lập dữ liệu chỉ có đến 10:00
+    const dataDisplayLimit = 10;
 
-    // === Dữ liệu mẫu (Data Samples) ===
-    
-    // ARPU (Trục Y trái 1)
     const arpuData = Array.from({ length: 24 }, (_, i) => 
       i <= dataDisplayLimit ? parseFloat((Math.random() * 0.5 + 1.2).toFixed(2)) : null
     );
-
-    // ARPPU (Trục Y trái 2) - Luôn lớn hơn ARPU
     const arppuData = Array.from({ length: 24 }, (_, i) => 
       i <= dataDisplayLimit ? parseFloat((Math.random() * 1.5 + 5.5).toFixed(2)) : null
     );
-
-    // Paying Rate (Trục Y phải) - Giá trị phần trăm
     const payingRateData = Array.from({ length: 24 }, (_, i) => 
       i <= dataDisplayLimit ? parseFloat((Math.random() * 0.05 + 1.5).toFixed(2)) : null
     );
 
-    // === Bộ màu ===
-    // ARPU (Xanh dương), ARPPU (Xanh lá), Paying Rate (Cam)
     const colors = ['#145dfc', '#03c950', '#ed5a27'];
-
-    // === Ngày động ===
     const today = '2025-10-25';
-    
-    // === Cấu hình biểu đồ ===
+
+    // Tìm dữ liệu cuối cùng của Paying Rate
+    const lastIdx = payingRateData.findLastIndex(v => v != null);
+    const lastHour = lastIdx >= 0 ? categories[lastIdx] : null;
+    const lastValue = lastIdx >= 0 ? payingRateData[lastIdx] : null;
+
     const option = {
       color: colors,
       tooltip: {
@@ -73,12 +64,9 @@
             const val = p.value != null ? p.value.toLocaleString() : '–';
             const unit = p.seriesName.includes('Rate') ? '%' : '';
             const seriesColor = p.color;
-            
-            // Highlight màu cho Paying Rate
             const valDisplay = p.seriesName.includes('Rate') 
                 ? `<span style="color:${seriesColor}; font-weight: bold;">${val}${unit}</span>`
                 : `${val}${unit}`;
-                
             text += `${p.marker} ${p.seriesName}: ${valDisplay}<br/>`;
           });
           text += `</div>`;
@@ -91,156 +79,71 @@
         icon: "circle",
         itemWidth: 10,
         itemHeight: 10,
-        textStyle: {
-          fontFamily: "Be Vietnam Pro",
-          fontSize: 12,
-          color: "#333"
-        },
+        textStyle: { fontFamily: "Be Vietnam Pro", fontSize: 12, color: "#333" },
         data: [
-          { name: `ARPU ${today}`, icon: 'circle' },
-          { name: `ARPPU ${today}`, icon: 'circle' },
-          { name: `Paying Rate ${today}`, icon: 'circle' }
+          `ARPU ${today}`,
+          `ARPPU ${today}`,
+          `Paying Rate ${today}`
         ]
       },
-      grid: {
-        left: 45, right: 45, top: 30, bottom: 40, containLabel: true
-      },
+      grid: { left: 45, right: 45, top: 30, bottom: 40, containLabel: true },
       xAxis: {
         type: 'category',
         data: categories,
         axisLine: { lineStyle: { color: '#bbb', width: 1.5 } },
-        axisLabel: {
-          fontFamily: 'Be Vietnam Pro',
-          fontSize: 11,
-          color: '#555'
-        }
+        axisLabel: { fontFamily: 'Be Vietnam Pro', fontSize: 11, color: '#555' }
       },
       yAxis: [
-        // Trục Y 0 (Left - ARPU, ARPPU)
         {
           type: 'value',
           name: 'ARPU / ARPPU',
           position: 'left',
           nameLocation: 'center',
           nameGap: 30,
-          nameTextStyle: {
-            fontFamily: 'Be Vietnam Pro',
-            fontSize: 11,
-            color: '#333'
-          },
-          splitLine: {
-            lineStyle: { type: 'dashed', color: '#eee' }
-          },
-          axisLabel: {
-            fontFamily: 'Be Vietnam Pro',
-            fontSize: 11,
-            color: '#555',
-            formatter: value => value.toLocaleString() 
-          }
+          nameTextStyle: { fontFamily: 'Be Vietnam Pro', fontSize: 11, color: '#333' },
+          splitLine: { lineStyle: { type: 'dashed', color: '#eee' } },
+          axisLabel: { fontFamily: 'Be Vietnam Pro', fontSize: 11, color: '#555', formatter: v => v.toLocaleString() }
         },
-        // Trục Y 1 (Right - Paying Rate)
         {
           type: 'value',
           name: 'Paying Rate (%)',
           position: 'right',
           nameLocation: 'center',
           nameGap: 30,
-          nameTextStyle: {
-            fontFamily: 'Be Vietnam Pro',
-            fontSize: 11,
-            color: colors[2] // Cam
-          },
+          nameTextStyle: { fontFamily: 'Be Vietnam Pro', fontSize: 11, color: colors[2] },
           min: 0,
-          max: function (value) {
-            // Đảm bảo trục Rate luôn lớn hơn hoặc bằng giá trị Max Rate * 1.2
-            return Math.ceil(value.max * 1.2 * 10) / 10; 
+          max: function(value) {
+            return value.max ? Math.ceil(value.max * 1.2 * 10) / 10 : 10;
           },
           splitLine: { show: false },
-          axisLabel: {
-            fontFamily: 'Be Vietnam Pro',
-            fontSize: 11,
-            color: colors[2], // Cam
-            formatter: '{value}%' 
-          }
+          axisLabel: { fontFamily: 'Be Vietnam Pro', fontSize: 11, color: colors[2], formatter: '{value}%' }
         }
       ],
       series: [
-        // Series 1: ARPU (Trục trái) - Màu Xanh dương
-        {
-          name: `ARPU ${today}`,
-          type: 'line',
-          yAxisIndex: 0,
-          data: arpuData,
-          smooth: true,
-          symbolSize: 6,
-          showSymbol: true,
-          lineStyle: { width: 2, color: colors[0] }
-        },
-        // Series 2: ARPPU (Trục trái) - Màu Xanh lá
-        {
-          name: `ARPPU ${today}`,
-          type: 'line',
-          yAxisIndex: 0,
-          data: arppuData,
-          smooth: true,
-          symbolSize: 6,
-          showSymbol: true,
-          lineStyle: { width: 2, color: colors[1] }
-        },
-        // Series 3: Paying Rate (Trục phải) - Màu Cam
-        {
-          name: `Paying Rate ${today}`,
-          type: 'line',
-          yAxisIndex: 1,
-          data: payingRateData,
-          smooth: true,
-          symbolSize: 6,
-          showSymbol: true,
-          lineStyle: { width: 2, color: colors[2] }
-        }
+        { name: `ARPU ${today}`, type: 'line', yAxisIndex: 0, data: arpuData, smooth: true, connectNulls: true, symbolSize: 6, showSymbol: true, lineStyle: { width: 2, color: colors[0] } },
+        { name: `ARPPU ${today}`, type: 'line', yAxisIndex: 0, data: arppuData, smooth: true, connectNulls: true, symbolSize: 6, showSymbol: true, lineStyle: { width: 2, color: colors[1] } },
+        { name: `Paying Rate ${today}`, type: 'line', yAxisIndex: 1, data: payingRateData, smooth: true, connectNulls: true, symbolSize: 6, showSymbol: true, lineStyle: { width: 2, color: colors[2] } }
       ]
     };
 
-    // === Hiệu ứng ripple cho điểm cuối cùng của Paying Rate ===
-    const lastIdx = payingRateData.findLastIndex(v => v != null);
-    const lastHour = categories[lastIdx];
-    const lastValue = payingRateData[lastIdx];
-    
-    // Nếu có dữ liệu mới nhất
+    // Thêm effectScatter cho điểm cuối Paying Rate
     if (lastValue != null) {
-      myChart.setOption({
-        series: [
-          ...option.series,
-          {
-            type: "effectScatter",
-            coordinateSystem: "cartesian2d",
-            data: [[lastHour, lastValue]],
-            symbolSize: 12,
-            rippleEffect: {
-              brushType: "stroke",
-              scale: 4,
-              period: 3
-            },
-            itemStyle: {
-              color: colors[2],
-              shadowBlur: 25,
-              shadowColor: "rgba(237, 90, 39, 0.6)"
-            },
-            tooltip: { show: false },
-            yAxisIndex: 1,
-            zlevel: 3
-          }
-        ]
+      option.series.push({
+        name: 'Paying Rate Highlight',
+        type: "effectScatter",
+        coordinateSystem: "cartesian2d",
+        data: [[lastHour, lastValue]],
+        symbolSize: 12,
+        rippleEffect: { brushType: "stroke", scale: 4, period: 3 },
+        itemStyle: { color: colors[2], shadowBlur: 25, shadowColor: "rgba(237, 90, 39, 0.6)" },
+        tooltip: { show: false },
+        yAxisIndex: 1,
+        zlevel: 3
       });
     }
 
-    // === Vẽ chart ===
     myChart.setOption(option);
-
-    // Auto resize
-    window.addEventListener("resize", () => {
-      myChart.resize();
-    });
+    window.addEventListener("resize", () => myChart.resize());
   </script>
 </body>
 </html>
