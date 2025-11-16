@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stacked 100% Column Chart Hourly (IAP vs WEB)</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: #ffffff;
+    }
+    #chart {
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="chart"></div>
+
+  <script>
+    // === Khởi tạo chart ===
+    const chartDom = document.getElementById("chart");
+    const myChart = echarts.init(chartDom);
+
+    // THIẾT LẬP GIỜ
+    const totalHours = 23;
+    const dataDisplayLimit = 10; // Dữ liệu chỉ có giá trị đến 10:00
+    const categories = Array.from({ length: totalHours + 1 }, (_, i) => `${i}:00`);
+
+    // === Bộ màu (Chỉ cần 2 màu cho 2 nhóm IAP và WEB) ===
+    // Tôi dùng màu xanh dương cho IAP và xanh lá cho WEB
+    const colors = ['#145dfc', '#03c950']; 
+    
+    // === Dữ liệu tuyệt đối gốc (đến 24 giờ) ===
+    const full_dim1 = [480, 500, 390, 510, 195, 310, 500, 595, 510, 505, 510, 520, 505, 500, 510, 515, 520, 590, 600, 810, 500, 510, 515, 500]; // Apple Store
+    const full_dim2 = [220, 210, 230, 215, 225, 220, 230, 220, 215, 230, 225, 220, 230, 225, 220, 215, 220, 230, 225, 220, 225, 230, 220, 215]; // Google Play Store
+    const full_dim3 = [250, 240, 245, 250, 240, 245, 250, 240, 245, 250, 245, 250, 240, 245, 250, 240, 245, 250, 240, 245, 250, 245, 240, 250]; // Credit/ Debit (Web)
+    const full_dim4 = [230, 225, 235, 230, 225, 230, 235, 225, 230, 235, 230, 225, 230, 235, 225, 230, 225, 230, 235, 230, 225, 230, 235, 230]; // QR Code Payment
+    const full_dim5 = [220, 210, 215, 220, 215, 210, 215, 220, 215, 210, 215, 220, 210, 215, 220, 215, 210, 215, 220, 215, 210, 215, 220, 215]; // Others
+
+    // Hàm chuẩn bị dữ liệu: cắt đến dataDisplayLimit và đệm bằng null
+    function prepareData(fullData) {
+        const slicedData = fullData.slice(0, dataDisplayLimit + 1);
+        const nullPadding = Array(totalHours - dataDisplayLimit).fill(null);
+        return slicedData.concat(nullPadding);
+    }
+
+    // Cắt dữ liệu tuyệt đối (Absolute data)
+    const dim1 = prepareData(full_dim1); 
+    const dim2 = prepareData(full_dim2); 
+    const dim3 = prepareData(full_dim3); 
+    const dim4 = prepareData(full_dim4); 
+    const dim5 = prepareData(full_dim5); 
+
+    // === TÍNH TOÁN DỮ LIỆU GỘP ===
+    
+    // 1. Gộp IAP: Apple Store (dim1) + Google Play Store (dim2)
+    const iapAbs = Array.from({ length: dim1.length }, (_, i) => 
+        (dim1[i] || 0) + (dim2[i] || 0)
+    );
+
+    // 2. Gộp WEB: Credit/Debit (dim3) + QR Code (dim4) + Others (dim5)
+    const webAbs = Array.from({ length: dim1.length }, (_, i) => 
+        (dim3[i] || 0) + (dim4[i] || 0) + (dim5[i] || 0)
+    );
+    
+    // 3. Tính Tổng mới (IAP + WEB) - Giá trị null sẽ được bỏ qua
+    const totalArr = Array.from({ length: dim1.length }, (_, i) =>
+      (iapAbs[i] || 0) + (webAbs[i] || 0)
+    );
+    
+    // === Hàm chuyển đổi sang Percentage Data (sử dụng tổng mới) ===
+    function toPercentData(absArr) {
+      return absArr.map((v, i) => {
+          const total = totalArr[i];
+          // Nếu tổng là 0, hoặc giá trị tuyệt đối là 0, trả về null
+          if (total === 0 || v === null) return null; 
+          return (v / total * 100).toFixed(1);
+      });
+    }
+    
+    // Tính Pct data cho IAP và WEB
+    const iapPct = toPercentData(iapAbs);
+    const webPct = toPercentData(webAbs);
+
+    const dimensionNames = ['IAP (Apple + Google)', 'WEB (Credit/QR/Others)'];
+
+    // === Cấu hình biểu đồ ===
+    const option = {
+      color: colors,
+      textStyle: {
+        fontFamily: 'Be Vietnam Pro, sans-serif',
+        fontSize: 12,
+        color: '#333'
+      },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'line' },
+        backgroundColor: 'rgba(255,255,255,0.95)',
+        borderWidth: 0,
+        textStyle: { color: '#000', fontFamily: 'Be Vietnam Pro, sans-serif' },
+        formatter: params => {
+          let text = `<div style="font-family:'Be Vietnam Pro',sans-serif;">`;
+          text += `<strong>${params[0].axisValue}</strong><br/>`;
+          
+          const i = params[0].dataIndex;
+          const currentTotal = totalArr[i];
+
+          if (currentTotal === 0) {
+            return `<strong>${params[0].axisValue}</strong><br/>Không có dữ liệu.`;
+          }
+
+          // Lấy dữ liệu tuyệt đối của IAP và WEB
+          const iapAbsValue = iapAbs[i];
+          const webAbsValue = webAbs[i];
+
+          // Lặp qua 2 series
+          params.forEach(p => {
+            const isIAP = p.seriesName.startsWith('IAP');
+            const absValue = isIAP ? iapAbsValue : webAbsValue;
+            
+            const valAbs = absValue != null ? absValue.toLocaleString() : '–';
+            const valPct = p.value != null ? p.value : '–';
+
+            text += `${p.marker} ${p.seriesName}: ${valAbs} (${valPct}%)<br/>`;
+          });
+          
+          text += `<hr style="margin: 5px 0; border-color: #eee;">Tổng: ${currentTotal.toLocaleString()}`;
+          text += `</div>`;
+          return text;
+        }
+      },
+      legend: {
+        bottom: 0,
+        left: "center",
+        icon: "circle",
+        itemWidth: 10,
+        itemHeight: 10,
+        textStyle: {
+          fontFamily: "Be Vietnam Pro",
+          fontSize: 12,
+          color: "#333"
+        },
+        data: dimensionNames
+      },
+      grid: {
+        left: 10, right: 10, top: 10, bottom: 40, containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: categories,
+        axisLine: { lineStyle: { color: '#bbb', width: 1.5 } },
+        axisLabel: {
+          fontFamily: 'Be Vietnam Pro',
+          fontSize: 11,
+          color: '#555'
+        }
+      },
+      yAxis: {
+        type: 'value',
+        position: 'left',
+        min: 0,
+        max: 100,
+        nameLocation: 'center',
+        nameGap: 45,
+        nameTextStyle: {
+          fontFamily: 'Be Vietnam Pro',
+          fontSize: 11,
+          color: '#333'
+        },
+        splitLine: {
+          lineStyle: { type: 'dashed', color: '#eee' }
+        },
+        axisLabel: {
+          fontFamily: 'Be Vietnam Pro',
+          fontSize: 11,
+          color: '#555',
+          formatter: '{value}%'
+        }
+      },
+      series: [
+        // IAP
+        { 
+          name: dimensionNames[0], 
+          type: 'bar', 
+          stack: 'total', 
+          itemStyle: { color: colors[0] }, 
+          data: iapPct, 
+          barGap: '5%', 
+          barCategoryGap: '40%' 
+        },
+        // WEB
+        { 
+          name: dimensionNames[1], 
+          type: 'bar', 
+          stack: 'total', 
+          itemStyle: { color: colors[1] }, 
+          data: webPct 
+        }
+      ]
+    };
+
+    // === Vẽ chart ===
+    myChart.setOption(option);
+
+    // Auto resize
+    window.addEventListener("resize", () => {
+      myChart.resize();
+    });
+  </script>
+</body>
+</html>
