@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Booking Metrics Table with Single Select Add-on</title>
+<style>
+  body {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    padding: 0px;
+    background: #fff;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0px;
+    font-size: 12px;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: middle;
+  }
+  th {
+    background-color: #f5f5f5;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+  /* Style for clickable headers */
+  th:not(:first-child) {
+    cursor: pointer;
+  }
+  tr:nth-child(even){background-color: #fafafa;}
+  .positive { color: #03c950; font-weight: 400; }
+  .negative { color: #EA3323; font-weight: 400; }
+  .toggles {
+    margin-bottom: 5px;
+    font-size: 12px;
+    padding: 5px 0;
+  }
+  .additional-metric {
+    font-size: 11px;
+    margin-left: 5px;
+  }
+</style>
+</head>
+<body>
+
+<div class="toggles">
+  <label>Show:</label>
+  <label><input type="radio" name="displayMode" value="percent" checked> % of Total</label>
+  <label><input type="radio" name="displayMode" value="dod"> DoD (Full Day)</label>
+  <label><input type="radio" name="displayMode" value="sametimedod"> Same Time DoD</label>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Top Product</th>
+      <th>Ingame Revenue</th>
+      <th>PU</th>
+      <th>Trans</th>
+      <th>NPU</th>
+      <th>NNPU</th>
+      <th>Paying Rate</th>
+      <th>ARPPU</th>
+    </tr>
+  </thead>
+  <tbody id="table-body"></tbody>
+</table>
+
+<script>
+// --- Sample Data ---
+const data = [
+  { dimension: 'package.ws1.royal.web', revenue: 120000, prevRevenue: 100000, trans: 110, prevTrans: 95, pu: 90, prevPU: 85, npu: 80, prevNPU: 75, nnpu: 85, prevNNPU: 80, payingRate: 72, prevPayingRate: 70, arppu: 1333.3, prevARPPU: 1176.5 },
+  { dimension: 'package.ws2.silver.web', revenue: 90000, prevRevenue: 95000, trans: 85, prevTrans: 90, pu: 80, prevPU: 85, npu: 70, prevNPU: 75, nnpu: 78, prevNNPU: 80, payingRate: 65, prevPayingRate: 68, arppu: 1125.0, prevARPPU: 1117.6 },
+  { dimension: 'package.ws3.gold.web', revenue: 150000, prevRevenue: 130000, trans: 140, prevTrans: 120, pu: 130, prevPU: 110, npu: 125, prevNPU: 110, nnpu: 130, prevNNPU: 120, payingRate: 92, prevPayingRate: 85, arppu: 1153.8, prevARPPU: 1181.8 },
+  { dimension: 'package.ws4.platinum.web', revenue: 70000, prevRevenue: 70000, trans: 65, prevTrans: 65, pu: 60, prevPU: 60, npu: 55, prevNPU: 55, nnpu: 60, prevNNPU: 60, payingRate: 50, prevPayingRate: 50, arppu: 1166.7, prevARPPU: 1166.7 },
+  { dimension: 'package.ws5.basic.web', revenue: 50000, prevRevenue: 45000, trans: 45, prevTrans: 42, pu: 40, prevPU: 38, npu: 39, prevNPU: 36, nnpu: 40, prevNNPU: 38, payingRate: 35, prevPayingRate: 33, arppu: 1250.0, prevARPPU: 1184.2 },
+];
+
+// --- Table Rendering ---
+const tbody = document.getElementById('table-body');
+const headers = document.querySelectorAll('th:not(:first-child)'); 
+const displayRadios = document.querySelectorAll('input[name="displayMode"]');
+
+let sortState = { column: 'revenue', direction: 'desc' };
+
+// --- Sorting ---
+function sortData(column) {
+    let direction = 'asc';
+    if (sortState.column === column) direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+    
+    data.sort((a,b)=> direction==='asc'? a[column]-b[column] : b[column]-a[column]);
+    sortState.column = column;
+    sortState.direction = direction;
+
+    renderTable();
+    updateHeaderIcons();
+}
+
+// --- Header Icons ---
+function updateHeaderIcons() {
+    headers.forEach(header=>{
+        let originalText = header.getAttribute('data-original-text');
+        if(!originalText){
+            originalText = header.innerText.replace(/ \u25B2| \u25BC/g,'').trim();
+            header.setAttribute('data-original-text', originalText);
+        }
+        header.innerHTML = originalText;
+    });
+
+    if(sortState.column){
+        const keyMap = {
+            'revenue': 'Ingame Revenue',
+            'pu': 'PU',
+            'trans': 'Trans',
+            'npu': 'NPU',
+            'nnpu': 'NNPU',
+            'payingRate': 'Paying Rate',
+            'arppu': 'ARPPU'
+        };
+        const targetHeaderText = keyMap[sortState.column];
+        const sortedHeader = Array.from(headers).find(h=>h.getAttribute('data-original-text')===targetHeaderText);
+        if(sortedHeader){
+            const icon = sortState.direction==='asc' ? ' \u25B2' : ' \u25BC';
+            sortedHeader.innerHTML += icon;
+        }
+    }
+}
+
+// --- Assign sort events ---
+headers.forEach(header=>{
+    let dataKey;
+    const text = header.innerText.toLowerCase();
+    if(text.includes('ingame revenue')) dataKey='revenue';
+    else if(text.includes('pu')) dataKey='pu';
+    else if(text.includes('trans')) dataKey='trans';
+    else if(text.includes('npu')) dataKey='npu';
+    else if(text.includes('nnpu')) dataKey='nnpu';
+    else if(text.includes('paying rate')) dataKey='payingRate';
+    else if(text.includes('arppu')) dataKey='arppu';
+    header.setAttribute('data-original-text', header.innerText);
+    if(dataKey) header.addEventListener('click',()=>sortData(dataKey));
+});
+
+// --- Render Table ---
+function renderTable(){
+  tbody.innerHTML = '';
+  const totalRevenue = data.reduce((sum,d)=>sum+d.revenue,0);
+  const totalTrans = data.reduce((sum,d)=>sum+d.trans,0);
+  const totalPU = data.reduce((sum,d)=>sum+d.pu,0);
+  const totalNPU = data.reduce((sum,d)=>sum+d.npu,0);
+  const totalNNPU = data.reduce((sum,d)=>sum+d.nnpu,0);
+
+  const checkedRadio = document.querySelector('input[name="displayMode"]:checked');
+  const selectedMode = checkedRadio ? checkedRadio.value : 'none';
+
+  function formatAdditional(value, total, prevFullDay, prevSameTime, isCountMetric=true, decimalPlaces=0){
+    let additionalText='';
+    let formattedValue = value.toLocaleString(undefined, { minimumFractionDigits: decimalPlaces, maximumFractionDigits: decimalPlaces });
+
+    if(selectedMode==='percent' && isCountMetric){
+        if(total>0) additionalText = `(${((value/total)*100).toFixed(1)}%)`;
+        else additionalText='(0.0%)';
+    } else if(selectedMode==='dod' || selectedMode==='sametimedod'){
+        let compareValue = (selectedMode==='dod')? prevFullDay : prevSameTime;
+        if(compareValue===0 || compareValue===undefined || isNaN(compareValue)){
+            additionalText = ` <span class="negative">N/A</span>`;
+        } else {
+            const diff = ((value-compareValue)/compareValue*100).toFixed(1);
+            const cls = diff>=0?'positive':'negative';
+            additionalText = ` <span class="${cls}">${diff>=0?'+':''}${diff}%</span>`;
+        }
+    }
+
+    return additionalText?`${formattedValue}<span class="additional-metric">${additionalText}</span>`:formattedValue;
+  }
+
+  data.forEach(d=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${d.dimension}</td>
+      <td>${formatAdditional(d.revenue,totalRevenue,d.prevRevenue,d.stpRevenue,true,0)}</td>
+      <td>${formatAdditional(d.pu,totalPU,d.prevPU,d.stpPU,true,0)}</td>
+      <td>${formatAdditional(d.trans,totalTrans,d.prevTrans,d.stpTrans,true,0)}</td>
+      <td>${formatAdditional(d.npu,totalNPU,d.prevNPU,d.stpNPU,true,0)}</td>
+      <td>${formatAdditional(d.nnpu,totalNNPU,d.prevNNPU,d.stpNNPU,true,0)}</td>
+      <td>${formatAdditional(d.payingRate,0,d.prevPayingRate,d.stpPayingRate,false,1)}</td>
+      <td>${formatAdditional(d.arppu,0,d.prevARPPU,d.stpARPPU,false,1)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// --- Initial render ---
+sortData('revenue'); 
+updateHeaderIcons();
+displayRadios.forEach(radio=>radio.addEventListener('change',renderTable));
+</script>
+
+</body>
+</html>
