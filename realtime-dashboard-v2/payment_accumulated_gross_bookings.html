@@ -22,6 +22,7 @@
     #chart {
       width: 100%;
       height: 100vh;
+      margin-top: 20px; /* Add some space between buttons and chart */
     }
     .metric-selector {
       margin: 20px 0;
@@ -32,7 +33,7 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
     .metric-button {
-      padding: 10px 15px;
+      padding: 10px 20px; /* Increased horizontal padding */
       font-family: 'Be Vietnam Pro', sans-serif;
       font-size: 14px;
       cursor: pointer;
@@ -40,14 +41,18 @@
       background: #fff;
       color: #555;
       transition: background 0.2s, color 0.2s;
+      display: flex; /* For centering text */
+      justify-content: center; /* For centering text */
+      align-items: center; /* For centering text */
     }
-    .metric-button:not(:last-child) {
+    /* Removed border-right for no separation */
+    /* .metric-button:not(:last-child) {
       border-right: 1px solid #ccc;
-    }
+    } */
     .metric-button.active {
       background: #e6f0ff; /* Light blue background for active */
       color: #145dfc; /* Blue text color for active */
-      font-weight: 600;
+      /* Removed font-weight: 600; for not bold */
     }
     .metric-button:hover:not(.active) {
       background: #f0f0f0;
@@ -68,53 +73,43 @@
     const myChart = echarts.init(chartDom);
     const metricButtons = document.querySelectorAll('.metric-button');
 
-    // === Global state for the active metric ===
     let activeMetric = 'Gross Booking'; 
+    let globalSourceData = []; // To store the full source data for tooltip calculations
 
-    // === Initial run with the default metric ===
     run(activeMetric); 
 
-    // === Button Event Listeners ===
     metricButtons.forEach(button => {
       button.addEventListener('click', function() {
         const newMetric = this.getAttribute('data-metric');
         
-        // Only update and redraw if the metric is actually changing
         if (newMetric !== activeMetric) {
-          // Update active metric state
           activeMetric = newMetric;
 
-          // Update button appearance (remove 'active' from all, add to clicked)
           metricButtons.forEach(btn => btn.classList.remove('active'));
           this.classList.add('active');
 
-          // Rerun chart with the new metric
           run(activeMetric);
         }
       });
     });
 
-    // === Main chart rendering function, now accepts a metric ===
     function run(metric) { 
-      // === Simulating different data for different metrics ===
-      // In a real application, you would fetch/load different data here
-      let todayData, compareData;
+      let todayData, compareDataRaw; // compareDataRaw will be used to generate the full 24-hour compare data
 
       switch (metric) {
         case 'Gross Booking':
           todayData = [1000, 1800, 2501, 3100, 4000, 5300, 6200, 7000, 8050, 9230, 10120];
           break;
-        case 'PU': // Example data for PU (lower magnitude)
+        case 'PU': 
           todayData = [100, 150, 220, 300, 410, 550, 680, 750, 820, 910, 1050];
           break;
-        case 'Succes Trans': // Example data for Success Transactions (medium magnitude)
+        case 'Succes Trans': 
           todayData = [250, 380, 500, 650, 800, 950, 1100, 1250, 1400, 1550, 1700];
           break;
         default:
           todayData = [];
       }
       
-      // === Common data calculations (kept from original) ===
       const hours = Array.from({ length: 24 }, (_, i) => `${i}:00`);
 
       const today = new Date();
@@ -129,44 +124,29 @@
       const growthRates = todayData.length > 1 ? todayData.slice(1).map((v, i) => v / todayData[i]) : [1];
       const avgGrowth = growthRates.reduce((a, b) => a + b, 0) / growthRates.length;
 
-      // === Creating compare data (kept from original) ===
-      compareData = [];
+      compareDataRaw = []; // This will hold the compare data for all 24 hours for tooltip
       for (let i = 0; i < 24; i++) {
         if (i < todayData.length) {
-          // Create compare data based on today's value + a random factor (10-12% higher)
-          compareData[i] = Math.round(todayData[i] * (1.1 + Math.random() * 0.02)); 
+          compareDataRaw[i] = Math.round(todayData[i] * (1.1 + Math.random() * 0.02)); 
         } else {
-          // Project future compare data based on avg growth
-          const prev = compareData[i - 1];
+          const prev = compareDataRaw[i - 1];
           const next = Math.round(
             prev * (1 + (avgGrowth - 1) * (0.25 + Math.random() * 0.022))
           );
-          compareData[i] = Math.max(next, prev + (i < 12 ? 100 : 50)); // Adjusted minimum increase
+          compareDataRaw[i] = Math.max(next, prev + (i < 12 ? 100 : 50)); 
         }
       }
       
-      // === Chuẩn hóa data source ===
       const source = hours.map((h, i) => ({
         Hour: h,
-        Today: i < todayData.length ? todayData[i] : null,
-        Compare: compareData[i]
+        Today: i < todayData.length ? todayData[i] : null, // Today's data only for recorded hours
+        Compare: compareDataRaw[i] // Compare data for all 24 hours
       }));
-      
-      // --- Chart Option ---
-      const option = {
-        // ... (Colors, Tooltip, Legend, Grid, XAxis, YAxis are mostly the same)
-        color: ['#145dfc', '#03c950'],
 
-        title: { // Add a title to reflect the current metric
-            text: `Hourly Comparison for ${metric}`,
-            left: 'center',
-            top: 10,
-            textStyle: {
-                fontFamily: 'Be Vietnam Pro',
-                fontSize: 18,
-                fontWeight: 'bold'
-            }
-        },
+      globalSourceData = source; // Store for tooltip calculations
+
+      const option = {
+        color: ['#145dfc', '#03c950'],
 
         tooltip: {
           trigger: 'axis',
@@ -178,6 +158,10 @@
             let text = `<div style="font-family:'Be Vietnam Pro',sans-serif;">`;
             text += `<strong>${params[0].axisValue}</strong><br/>`;
 
+            const currentHourIndex = hours.indexOf(params[0].axisValue);
+            const todayValue = globalSourceData[currentHourIndex]?.Today;
+            const compareValue = globalSourceData[currentHourIndex]?.Compare;
+
             params.forEach(p => {
               const value =
                 p.value && p.value[1] != null && !isNaN(p.value[1])
@@ -185,6 +169,19 @@
                   : '–';
               text += `${p.marker} ${p.seriesName}: ${value}<br/>`;
             });
+
+            // Add percentage difference for 'Today' line if value exists
+            if (todayValue != null && compareValue != null && compareValue !== 0) {
+              const diff = todayValue - compareValue;
+              const percentDiff = (diff / compareValue) * 100;
+              const sign = percentDiff >= 0 ? '▲' : '▼';
+              const color = percentDiff >= 0 ? '#03c950' : '#d93a30'; // Green for increase, Red for decrease
+              
+              text += `<span style="color:${color};">${sign}${Math.abs(percentDiff).toFixed(1)}%</span> vs Same Time Compare Date<br/>`;
+            } else if (todayValue == null && compareValue != null) {
+                // If today's data is not yet available, we can still show a comparison for forecast
+                // For now, let's just not show the percentage if today's data is null
+            }
 
             text += `</div>`;
             return text;
@@ -203,7 +200,7 @@
         },
 
         grid: {
-          top: 60, // Adjust grid top position for the new title
+          top: 40, /* Adjusted grid top as there is no title */
           left: 50,
           right: 30,
           bottom: 60
@@ -240,7 +237,7 @@
               position: 'top',
               fontFamily: 'Be Vietnam Pro',
               formatter: p =>
-                p.dataIndex === todayData.length - 1
+                p.dataIndex === todayData.length - 1 && p.value && p.value[1] != null
                   ? p.value[1].toLocaleString()
                   : ''
             }
@@ -259,9 +256,8 @@
         ]
       };
 
-      myChart.setOption(option, true); // The `true` argument is for `notMerge`, which is useful when changing series completely
+      myChart.setOption(option, true); 
 
-      // === Hiệu ứng loang ở điểm cuối Today ===
       if (todayData.length > 0) {
         const lastIdx = todayData.length - 1;
         const lastHour = hours[lastIdx];
@@ -289,9 +285,8 @@
               zlevel: 2
             }
           ]
-        }, false); // Set to `false` (merge) to add the effectScatter series
+        }, false); 
       } else {
-        // If there's no data, clear the effectScatter series to avoid errors
         myChart.setOption({ series: option.series }, true); 
       }
     }
