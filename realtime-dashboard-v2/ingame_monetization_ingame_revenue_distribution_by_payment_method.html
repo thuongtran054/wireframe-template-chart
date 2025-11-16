@@ -34,9 +34,11 @@
     const dataDisplayLimit = 10; // Dữ liệu chỉ có giá trị đến 10:00
     const categories = Array.from({ length: totalHours + 1 }, (_, i) => `${i}:00`);
 
-    // === Bộ màu (Chỉ cần 2 màu cho 2 nhóm IAP và WEB) ===
-    // Tôi dùng màu xanh dương cho IAP và xanh lá cho WEB
-    const colors = ['#145dfc', '#03c950']; 
+    // === Bộ màu ===
+    // [0]: WEB (Xanh Dương #145dfc), [1]: IAP (Cam #ed5a27)
+    const colors = ['#145dfc', '#ed5a27']; 
+    // Màu cho các thành phần con (Không còn cần thiết cho tooltip, nhưng giữ lại)
+    const subColors = ['#4d80ff', '#53c97e', '#ff7a4d', '#afafaf', '#ffc53d'];
     
     // === Dữ liệu tuyệt đối gốc (đến 24 giờ) ===
     const full_dim1 = [480, 500, 390, 510, 195, 310, 500, 595, 510, 505, 510, 520, 505, 500, 510, 515, 520, 590, 600, 810, 500, 510, 515, 500]; // Apple Store
@@ -53,11 +55,11 @@
     }
 
     // Cắt dữ liệu tuyệt đối (Absolute data)
-    const dim1 = prepareData(full_dim1); 
-    const dim2 = prepareData(full_dim2); 
-    const dim3 = prepareData(full_dim3); 
-    const dim4 = prepareData(full_dim4); 
-    const dim5 = prepareData(full_dim5); 
+    const dim1 = prepareData(full_dim1); // Apple
+    const dim2 = prepareData(full_dim2); // Google
+    const dim3 = prepareData(full_dim3); // Credit
+    const dim4 = prepareData(full_dim4); // QR
+    const dim5 = prepareData(full_dim5); // Others
 
     // === TÍNH TOÁN DỮ LIỆU GỘP ===
     
@@ -71,7 +73,7 @@
         (dim3[i] || 0) + (dim4[i] || 0) + (dim5[i] || 0)
     );
     
-    // 3. Tính Tổng mới (IAP + WEB) - Giá trị null sẽ được bỏ qua
+    // 3. Tính Tổng mới (IAP + WEB)
     const totalArr = Array.from({ length: dim1.length }, (_, i) =>
       (iapAbs[i] || 0) + (webAbs[i] || 0)
     );
@@ -80,7 +82,6 @@
     function toPercentData(absArr) {
       return absArr.map((v, i) => {
           const total = totalArr[i];
-          // Nếu tổng là 0, hoặc giá trị tuyệt đối là 0, trả về null
           if (total === 0 || v === null) return null; 
           return (v / total * 100).toFixed(1);
       });
@@ -90,7 +91,8 @@
     const iapPct = toPercentData(iapAbs);
     const webPct = toPercentData(webAbs);
 
-    const dimensionNames = ['IAP (Apple + Google)', 'WEB (Credit/QR/Others)'];
+    // Đã đổi thứ tự trong mảng này để khớp với màu: [WEB, IAP]
+    const dimensionNames = ['WEB', 'IAP']; 
 
     // === Cấu hình biểu đồ ===
     const option = {
@@ -100,42 +102,9 @@
         fontSize: 12,
         color: '#333'
       },
+      // ⭐ THAY ĐỔI: ẨN TOOLTIP HOÀN TOÀN
       tooltip: {
-        trigger: 'axis',
-        axisPointer: { type: 'line' },
-        backgroundColor: 'rgba(255,255,255,0.95)',
-        borderWidth: 0,
-        textStyle: { color: '#000', fontFamily: 'Be Vietnam Pro, sans-serif' },
-        formatter: params => {
-          let text = `<div style="font-family:'Be Vietnam Pro',sans-serif;">`;
-          text += `<strong>${params[0].axisValue}</strong><br/>`;
-          
-          const i = params[0].dataIndex;
-          const currentTotal = totalArr[i];
-
-          if (currentTotal === 0) {
-            return `<strong>${params[0].axisValue}</strong><br/>Không có dữ liệu.`;
-          }
-
-          // Lấy dữ liệu tuyệt đối của IAP và WEB
-          const iapAbsValue = iapAbs[i];
-          const webAbsValue = webAbs[i];
-
-          // Lặp qua 2 series
-          params.forEach(p => {
-            const isIAP = p.seriesName.startsWith('IAP');
-            const absValue = isIAP ? iapAbsValue : webAbsValue;
-            
-            const valAbs = absValue != null ? absValue.toLocaleString() : '–';
-            const valPct = p.value != null ? p.value : '–';
-
-            text += `${p.marker} ${p.seriesName}: ${valAbs} (${valPct}%)<br/>`;
-          });
-          
-          text += `<hr style="margin: 5px 0; border-color: #eee;">Tổng: ${currentTotal.toLocaleString()}`;
-          text += `</div>`;
-          return text;
-        }
+        show: false
       },
       legend: {
         bottom: 0,
@@ -186,24 +155,25 @@
         }
       },
       series: [
-        // IAP
+        // Series 0: WEB (Xanh Dương)
         { 
-          name: dimensionNames[0], 
+          name: dimensionNames[0], // 'WEB'
           type: 'bar', 
           stack: 'total', 
-          itemStyle: { color: colors[0] }, 
-          data: iapPct, 
+          itemStyle: { color: colors[0] }, // #145dfc (Xanh Dương)
+          data: webPct, 
           barGap: '5%', 
           barCategoryGap: '40%' 
         },
-        // WEB
+        // Series 1: IAP (Cam)
         { 
-          name: dimensionNames[1], 
+          name: dimensionNames[1], // 'IAP'
           type: 'bar', 
           stack: 'total', 
-          itemStyle: { color: colors[1] }, 
-          data: webPct 
+          itemStyle: { color: colors[1] }, // #ed5a27 (Cam)
+          data: iapPct 
         }
+        // Các series con đã bị loại bỏ vì tooltip đã bị ẩn
       ]
     };
 
