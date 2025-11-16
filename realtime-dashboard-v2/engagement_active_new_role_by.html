@@ -25,14 +25,15 @@
   <div id="chart"></div>
 
   <script>
+// ⭐ ĐÃ THAY ĐỔI
 var eventNames = [
-  'New Users', 'Retention Users', 'Return Users'
+  'iOS', 'Android', 'PC', 'Others' 
 ];
 
-var totalEvents = [820, 732, 701];
-var newEvents = [600, 500, 550 ];
+var totalEvents = [820, 732, 701, 550]; // Thêm giá trị cho 'Others'
+var newEvents = [600, 500, 550, 400 ]; // Thêm giá trị cho 'Others'
 
-// 🧩 Gộp và sort theo newEvents giảm dần
+// 🧩 Gộp và sort theo newEvents giảm dần (Giữ nguyên logic)
 var data = eventNames.map((name, i) => ({ name, total: totalEvents[i], newE: newEvents[i] }))
   .sort((b, a) => b.newE - a.newE);
 
@@ -45,6 +46,7 @@ option = {
   tooltip: {
     trigger: 'axis',
     axisPointer: { type: 'shadow' },
+    // ⭐ ĐÃ CẬP NHẬT: Thay đổi tên series trong tooltip
     formatter: function (params) {
       const total = params.find(p => p.seriesName === 'Active User')?.value || 0;
       const newE = params.find(p => p.seriesName === 'New Role')?.value || 0;
@@ -55,6 +57,7 @@ option = {
       `;
     }
   },
+  // ⭐ ĐÃ CẬP NHẬT: Tên Legend
   legend: {
     data: ['Active User', 'New Role'],
     bottom: 0,
@@ -69,15 +72,9 @@ option = {
   },
   xAxis: {
     type: 'value',
-    show: false,
-    axisLabel: {
-      fontFamily: 'Be Vietnam Pro',
-      formatter: value => value.toLocaleString()
-    },
-    splitLine: {
-      show: true,
-      lineStyle: { type: 'dashed', color: '#ddd' }
-    }
+    // ⭐ ĐÃ CẬP NHẬT: Tắt label và gridline trục X
+    axisLabel: { show: false }, 
+    splitLine: { show: false } 
   },
   yAxis: {
     type: 'category',
@@ -96,7 +93,7 @@ option = {
       type: 'bar',
       data: sortedTotal,
       barWidth: 18,
-      barCategoryGap: '5px', // ✅ khoảng cách 5px giữa các event
+      barCategoryGap: '5px',
       itemStyle: { color: '#6ef5a3' },
       label: {
         show: true,
@@ -112,14 +109,15 @@ option = {
       type: 'bar',
       data: sortedNew,
       barWidth: 12,
-      barCategoryGap: '5px', // ✅ khoảng cách đồng bộ
+      barCategoryGap: '5px',
       itemStyle: { color: '#03c950' },
-      barGap: '-80%', // ✅ overlap vào trong
+      barGap: '-80%',
       label: { show: false },
       z: 3
     }
   ]
-};    const chartDom = document.getElementById('chart');
+};    
+    const chartDom = document.getElementById('chart');
     const myChart = echarts.init(chartDom);
     myChart.setOption(option);
 
