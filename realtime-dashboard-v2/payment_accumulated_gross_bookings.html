@@ -14,26 +14,29 @@
       margin: 0;
       padding: 0;
       display: flex;
-      flex-direction: column; /* Changed to column to stack buttons and chart */
-      justify-content: flex-start; /* Start from the top */
-      align-items: center;
+      flex-direction: column; 
+      /* Changed alignment to flex-start for left-alignment */
+      justify-content: flex-start; 
+      align-items: flex-start; /* <<< KEY CHANGE: Align items to the start (left) */
       height: 100vh;
+      padding-left: 20px; /* Add some padding on the left for the metric selector to not hug the edge */
     }
     #chart {
       width: 100%;
       height: 100vh;
-      margin-top: 20px; /* Add some space between buttons and chart */
+      margin-top: 5px; /* <<< KEY CHANGE: Reduced margin between selector and chart */
     }
     .metric-selector {
-      margin: 20px 0;
+      margin: 20px 0 0 0; /* Adjusted margin to ensure the top spacing is 20px, and bottom is 0 for the 5px gap below */
       border: 1px solid #ccc;
       border-radius: 8px;
       display: flex;
       overflow: hidden;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      /* Since body is align-items: flex-start, this selector is already left-aligned */
     }
     .metric-button {
-      padding: 10px 20px; /* Increased horizontal padding */
+      padding: 10px 20px; 
       font-family: 'Be Vietnam Pro', sans-serif;
       font-size: 14px;
       cursor: pointer;
@@ -41,18 +44,13 @@
       background: #fff;
       color: #555;
       transition: background 0.2s, color 0.2s;
-      display: flex; /* For centering text */
-      justify-content: center; /* For centering text */
-      align-items: center; /* For centering text */
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
     }
-    /* Removed border-right for no separation */
-    /* .metric-button:not(:last-child) {
-      border-right: 1px solid #ccc;
-    } */
     .metric-button.active {
-      background: #e6f0ff; /* Light blue background for active */
-      color: #145dfc; /* Blue text color for active */
-      /* Removed font-weight: 600; for not bold */
+      background: #e6f0ff; 
+      color: #145dfc; 
     }
     .metric-button:hover:not(.active) {
       background: #f0f0f0;
@@ -62,9 +60,9 @@
 
 <body>
   <div class="metric-selector">
-    <button class="metric-button active" data-metric="Gross Booking">Gross Booking</button>
+    <button class="metric-button" data-metric="Gross Booking">Gross Booking</button>
     <button class="metric-button" data-metric="PU">PU</button>
-    <button class="metric-button" data-metric="Succes Trans">Succes Trans</button>
+    <button class="metric-button active" data-metric="Succes Trans">Succes Trans</button>
   </div>
   <div id="chart"></div>
 
@@ -73,8 +71,9 @@
     const myChart = echarts.init(chartDom);
     const metricButtons = document.querySelectorAll('.metric-button');
 
-    let activeMetric = 'Gross Booking'; 
-    let globalSourceData = []; // To store the full source data for tooltip calculations
+    // Set 'Succes Trans' as the active metric based on the image provided
+    let activeMetric = 'Succes Trans'; 
+    let globalSourceData = []; 
 
     run(activeMetric); 
 
@@ -94,7 +93,7 @@
     });
 
     function run(metric) { 
-      let todayData, compareDataRaw; // compareDataRaw will be used to generate the full 24-hour compare data
+      let todayData, compareDataRaw;
 
       switch (metric) {
         case 'Gross Booking':
@@ -124,7 +123,7 @@
       const growthRates = todayData.length > 1 ? todayData.slice(1).map((v, i) => v / todayData[i]) : [1];
       const avgGrowth = growthRates.reduce((a, b) => a + b, 0) / growthRates.length;
 
-      compareDataRaw = []; // This will hold the compare data for all 24 hours for tooltip
+      compareDataRaw = [];
       for (let i = 0; i < 24; i++) {
         if (i < todayData.length) {
           compareDataRaw[i] = Math.round(todayData[i] * (1.1 + Math.random() * 0.02)); 
@@ -139,11 +138,11 @@
       
       const source = hours.map((h, i) => ({
         Hour: h,
-        Today: i < todayData.length ? todayData[i] : null, // Today's data only for recorded hours
-        Compare: compareDataRaw[i] // Compare data for all 24 hours
+        Today: i < todayData.length ? todayData[i] : null,
+        Compare: compareDataRaw[i]
       }));
 
-      globalSourceData = source; // Store for tooltip calculations
+      globalSourceData = source; 
 
       const option = {
         color: ['#145dfc', '#03c950'],
@@ -170,17 +169,13 @@
               text += `${p.marker} ${p.seriesName}: ${value}<br/>`;
             });
 
-            // Add percentage difference for 'Today' line if value exists
             if (todayValue != null && compareValue != null && compareValue !== 0) {
               const diff = todayValue - compareValue;
               const percentDiff = (diff / compareValue) * 100;
               const sign = percentDiff >= 0 ? '▲' : '▼';
-              const color = percentDiff >= 0 ? '#03c950' : '#d93a30'; // Green for increase, Red for decrease
+              const color = percentDiff >= 0 ? '#03c950' : '#d93a30'; 
               
               text += `<span style="color:${color};">${sign}${Math.abs(percentDiff).toFixed(1)}%</span> vs Same Time Compare Date<br/>`;
-            } else if (todayValue == null && compareValue != null) {
-                // If today's data is not yet available, we can still show a comparison for forecast
-                // For now, let's just not show the percentage if today's data is null
             }
 
             text += `</div>`;
@@ -200,7 +195,7 @@
         },
 
         grid: {
-          top: 40, /* Adjusted grid top as there is no title */
+          top: 40,
           left: 50,
           right: 30,
           bottom: 60
