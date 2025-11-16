@@ -80,8 +80,8 @@
         },
         data: [
           // ĐÃ ĐỔI TÊN LEGEND
-          { name: `Ingame Revenue ${today}` },
-          { name: `Ingame Revenue ${compare}` }
+          { name: `Today ${today}` },
+          { name: `Compare Date ${compare}` }
           // ĐÃ BỎ Transaction
         ]
       },
@@ -128,7 +128,7 @@
       series: [
         {
           // ĐÃ ĐỔI TÊN SERIES
-          name: `Ingame Revenue ${today}`,
+          name: `Today ${today}`,
           type: 'bar',
           data: revCurrentData,
           barGap: 0,
@@ -136,7 +136,7 @@
         },
         {
           // ĐÃ ĐỔI TÊN SERIES
-          name: `Ingame Revenue ${compare}`,
+          name: `Compare Date ${compare}`,
           type: 'bar',
           data: revCompareData
         }
