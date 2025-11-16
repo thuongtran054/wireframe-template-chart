@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Basic Bar Chart Daily</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #chart {
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div id="chart"></div>
+
+  <script>
+const colors = ['#145dfc', '#03c950', '#ed5a27', '#f7b500'];
+let categories = [ 'New Users', 'Retention Users', 'Return Users'];
+let data = [480, 380, 340, 230]; // giá trị metric cho từng dim
+
+// 🔹 Sort categories và data theo giá trị giảm dần
+const sorted = categories.map((cat, i) => ({ cat, value: data[i] }))
+                         .sort((b, a) => b.value - a.value);
+
+categories = sorted.map(d => d.cat);
+data = sorted.map(d => d.value);
+
+
+option = {
+  textStyle: {
+    fontFamily: 'Be Vietnam Pro, sans-serif',
+    fontSize: 12,
+    color: '#333'
+  },
+  xAxis: {
+    type: 'value',
+    splitLine: { lineStyle: { type: 'dashed' } },
+    show: false
+
+  },
+  yAxis: {
+    type: 'category',
+    data: categories,
+    axisTick: { show: false },
+    axisLabel: {
+    show: true,
+    color: '#333',
+    align: 'right'         
+  }
+},
+  tooltip: {
+    trigger: 'item',
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    formatter: function (params) {
+      return `${params.name}: ${params.value.toLocaleString('en-US')}`;
+    }
+  },
+  grid: {
+    top: 20, 
+        bottom: 20,
+        left: 20,
+        right: 40,
+        containLabel: true  },
+  series: [{
+    name: 'Metric',
+    type: 'bar',
+    data: data,
+    itemStyle: {
+      color: function (params) {
+        return colors[params.dataIndex];
+      }
+    },
+    label: {
+      show: true,
+      position: 'right',
+      formatter: '{c}'
+    }
+  }]
+};
+    const chartDom = document.getElementById('chart');
+    const myChart = echarts.init(chartDom);
+    myChart.setOption(option);
+
+    window.addEventListener('resize', () => {
+      myChart.resize();
+    });
+
+  </script>
+</body>
+</html>
