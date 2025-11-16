@@ -69,7 +69,7 @@
   const lastPoint = [hours[lastIdx], todayData[lastIdx]];
 
   const option = {
-    color: ['#145dfc', '#03c950'], // Xanh Dương (Today), Xanh Lá (Compare)
+    color: ['#145dfc', '#03c950'],
 
     tooltip: {
       trigger: 'axis',
@@ -86,17 +86,21 @@
         let compareVal = null;
 
         params.forEach(p => {
-            // Chỉ hiển thị series line (seriesIndex 0 và 1), bỏ qua effectScatter (seriesIndex 2)
             if (p.seriesIndex < 2) { 
                 const val = p.value[1] != null ? p.value[1].toLocaleString() : '–';
-                html += `${p.marker} ${p.seriesName}: ${val}<br/>`;
+                
+                // ĐÃ SỬA: Buộc màu xanh lá cho Compare Date (seriesIndex 1) trong Tooltip
+                const markerColor = p.seriesIndex === 1 ? '#03c950' : p.color; 
+                const markerHtml = `<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:${markerColor};"></span>`;
+
+                html += `${markerHtml} ${p.seriesName}: ${val}<br/>`;
 
                 if (p.seriesIndex === 0) todayVal = p.value[1];
                 if (p.seriesIndex === 1) compareVal = p.value[1];
             }
         });
 
-        // === Thêm logic tăng giảm % tại đây ===
+        // === Logic tăng giảm % ===
         if (todayVal != null && compareVal != null) {
           const diff = todayVal - compareVal;
           const diffPercent = (diff / compareVal) * 100;
@@ -119,7 +123,6 @@
       textStyle: { fontFamily: 'Be Vietnam Pro' },
       data: [
         { name: `Today ${todayStr}` },
-        // Đã sửa: Thêm itemStyle để đặt màu cho legend
         { 
           name: `Compare Date ${compareStr}`,
           itemStyle: { color: '#03c950' } 
@@ -155,7 +158,6 @@
         name: `Today ${todayStr}`,
         type: 'line',
         smooth: false,
-        showSymbol: false,
         symbolSize: 6,
         data: source.map(d => [d.Hour, d.Today]),
         lineStyle: { width: 3, color: '#145dfc' },
