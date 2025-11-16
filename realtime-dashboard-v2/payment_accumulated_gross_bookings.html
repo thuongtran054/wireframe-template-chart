@@ -24,7 +24,7 @@
     #chart {
       width: 100%;
       height: 100vh;
-      margin-top: 5px; /* <<< KEY CHANGE: Reduced margin between selector and chart */
+      margin-top: 0px; /* <<< KEY CHANGE: Reduced margin between selector and chart */
     }
     .metric-selector {
       margin: 20px 0 0 0; /* Adjusted margin to ensure the top spacing is 20px, and bottom is 0 for the 5px gap below */
@@ -173,7 +173,7 @@
               const diff = todayValue - compareValue;
               const percentDiff = (diff / compareValue) * 100;
               const sign = percentDiff >= 0 ? '▲' : '▼';
-              const color = percentDiff >= 0 ? '#03c950' : '#d93a30'; 
+              const color = percentDiff >= 0 ? '#03c950' : '#EA3323'; 
               
               text += `<span style="color:${color};">${sign}${Math.abs(percentDiff).toFixed(1)}%</span> vs Same Time Compare Date<br/>`;
             }
@@ -195,7 +195,7 @@
         },
 
         grid: {
-          top: 0,
+          top: 10,
           left: 55,
           right: 30,
           bottom: 60
